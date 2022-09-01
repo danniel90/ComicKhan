@@ -7,7 +7,7 @@
 
 import Foundation
 import UIKit
-
+import MLKit
 
 class BookTranslateSettingsVC: UINavigationController {
     init(settingDelegate: BookTranslateSettingsVCDelegate? = nil) {
@@ -21,11 +21,106 @@ class BookTranslateSettingsVC: UINavigationController {
     }
 }
 
+extension SettingVC: UIPickerViewDataSource, UIPickerViewDelegate {
+    //MARK: UIPickerViewDataSource Methods
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        var count: Int
+        
+        switch pickerView.tag {
+        case 0:
+            count = bookTranslateSourceOptions.count
+        case 1:
+            count = bookTranslateTargetOptions.count
+        default:
+            count = 0
+        }
+        
+        return count
+    }
+    
+    //MARK: UIPickerViewDelegate Methods
+    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
+        var pickedString: String?
+        
+        switch pickerView.tag {
+        case 0:
+            let selectedOption = bookTranslateSourceOptions[row]
+            if selectedOption == "none" || selectedOption == "detect" {
+                pickedString = selectedOption
+            } else {
+                let language = locale.localizedString(forLanguageCode: selectedOption) ?? ""
+                pickedString = "\(language) (\(selectedOption))"
+            }
+            
+        case 1:
+            let selectedOption = bookTranslateTargetOptions[row]
+            if selectedOption == "none" {
+                pickedString = selectedOption
+            } else {
+                let language = locale.localizedString(forLanguageCode: selectedOption) ?? ""
+                pickedString = "\(language) (\(selectedOption))"
+            }
+        default:
+            pickedString = ""
+        }
+        
+        var label = UILabel()
+        if let v = view as? UILabel { label = v }
+        label.font = AppState.main.font.body
+        label.text =  pickedString
+        label.textAlignment = .center
+        return label
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        var message = "PickerView \(pickerView.tag) SelectedRow "
+        
+        switch pickerView.tag {
+        case 0:
+            message += bookTranslateSourceOptions[pickerView.selectedRow(inComponent: 0)]
+        case 1:
+            message += bookTranslateTargetOptions[pickerView.selectedRow(inComponent: 0)]
+        default:
+            message += ""
+        }
+        
+        print(message)
+    }
+    
+    
+}
+
 protocol BookTranslateSettingsVCDelegate: AnyObject {
     func doneTranslateButtonTapped()
 }
 
 fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    
+    let locale = Locale.current
+    lazy var bookTranslateSourceOptions: [String] = {
+        var options = allLanguages.map {
+            $0.rawValue
+        }
+        options.insert(contentsOf: ["none", "detect"], at: 0)
+        return options
+    }()
+    
+    lazy var bookTranslateTargetOptions: [String] = {
+        var options = allLanguages.map {
+            $0.rawValue
+        }
+        options.insert("none", at: 0)
+        return options
+    }()
+    
+    lazy var allLanguages = TranslateLanguage.allLanguages().sorted {
+        return locale.localizedString(forLanguageCode: $0.rawValue)!
+        < locale.localizedString(forLanguageCode: $1.rawValue)!
+    }
     
     weak var delegate: BookTranslateSettingsVCDelegate?
     
@@ -35,19 +130,25 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         return view
     }()
     
-    private lazy var readerTranslateSourcePicker: UIPickerView = {
+    private lazy var bookTranslateSourcePicker: UIPickerView = {
         let inputPickerView = UIPickerView(frame: .zero)
         inputPickerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         inputPickerView.tag = 0
+        inputPickerView.dataSource = self
+        inputPickerView.selectRow(bookTranslateSourceOptions.firstIndex(of: "none") ?? 0, inComponent: 0, animated: false)//TODO: LOAD BOOK OPTIONS
+        inputPickerView.delegate = self
         inputPickerView.translatesAutoresizingMaskIntoConstraints = false
         
         return inputPickerView
     }()
     
-    private lazy var readerTranslateTargetPicker: UIPickerView = {
+    private lazy var bookTranslateTargetPicker: UIPickerView = {
         let outputPickerView = UIPickerView(frame: .zero)
         outputPickerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         outputPickerView.tag = 1
+        outputPickerView.dataSource = self
+        outputPickerView.selectRow(bookTranslateTargetOptions.firstIndex(of: "none") ?? 0, inComponent: 0, animated: false)//TODO: LOAD BOOK OPTIONS
+        outputPickerView.delegate = self
         outputPickerView.translatesAutoresizingMaskIntoConstraints = false
         
         return outputPickerView
@@ -59,6 +160,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
                 self?.translateModeChanged(to: translateMode)
             })
         }))
+//        view.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: AppState.main.bookTranslateMode)!
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -128,8 +230,8 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         sourceLanguageLabel.translatesAutoresizingMaskIntoConstraints = false
         
         sourceLanguageStackView.addArrangedSubview(sourceLanguageLabel)
-        sourceLanguageStackView.addArrangedSubview(readerTranslateSourcePicker)
-        sourceLanguageStackView.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        sourceLanguageStackView.addArrangedSubview(bookTranslateSourcePicker)
+        sourceLanguageStackView.heightAnchor.constraint(equalToConstant: 40).isActive = true
         
         //TARGET
         let targetLanguageStackView = UIStackView()
@@ -143,8 +245,8 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         targetLanguageLabel.translatesAutoresizingMaskIntoConstraints = false
         
         targetLanguageStackView.addArrangedSubview(targetLanguageLabel)
-        targetLanguageStackView.addArrangedSubview(readerTranslateTargetPicker)
-        readerTranslateTargetPicker.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        targetLanguageStackView.addArrangedSubview(bookTranslateTargetPicker)
+        bookTranslateTargetPicker.heightAnchor.constraint(equalToConstant: 40).isActive = true
                 
         translateLanguagesStackView.addArrangedSubview(sourceLanguageStackView)
         translateLanguagesStackView.addArrangedSubview(targetLanguageStackView)
