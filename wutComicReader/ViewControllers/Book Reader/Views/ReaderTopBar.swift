@@ -60,6 +60,16 @@ class TopBar: UIView {
         return view
     }()
     
+    private lazy var BookTranslateSettingsButton: UIButton = {
+        let view = UIButton()
+        let image = UIImage(named: "ic-actions-more-1")?.withTintColor(.appMainLabelColor)
+        view.setImage(image, for: .normal)
+        view.layer.borderColor = UIColor.appMainLabelColor.cgColor
+        view.addAction(BookTranslateSettingsDidTapped(), for: .touchUpInside)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setUpDesign()
@@ -79,6 +89,12 @@ class TopBar: UIView {
         stackView.addArrangedSubview(dismissButton)
         stackView.addArrangedSubview(titleLabel)
         
+        stackView.addArrangedSubview(BookTranslateSettingsButton)
+        BookTranslateSettingsButton.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -15).isActive = true
+        BookTranslateSettingsButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
+        BookTranslateSettingsButton.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        BookTranslateSettingsButton.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        
         
         dismissButton.widthAnchor.constraint(equalToConstant: 65).isActive = true
         dismissButton.heightAnchor.constraint(equalToConstant: 45).isActive = true
@@ -87,6 +103,12 @@ class TopBar: UIView {
         spacing.backgroundColor = .yellow
         stackView.addArrangedSubview(spacing)
         spacing.widthAnchor.constraint(lessThanOrEqualToConstant: 65).isActive = true
+    }
+    
+    private func BookTranslateSettingsDidTapped() -> UIAction {
+        UIAction { [weak self] _ in
+            self?.delegate?.BookTranslateSettingsTapped()
+        }
     }
     
     

@@ -13,6 +13,7 @@ import Combine
 
 protocol TopBarDelegate: AnyObject {
     func dismissViewController()
+    func BookTranslateSettingsTapped()
 }
 
 final class BookReaderVC: DynamicConstraintViewController {
@@ -63,6 +64,14 @@ final class BookReaderVC: DynamicConstraintViewController {
     
     private lazy var settingBar: ReaderSettingVC = {
         let vc = ReaderSettingVC(settingDelegate: self)
+        vc.view.layer.cornerRadius = 20
+        vc.view.clipsToBounds = true
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
+        return vc
+    }()
+    
+    private lazy var BookTranslateSettingsBar: BookTranslateSettingsVC = {
+        let vc = BookTranslateSettingsVC(settingDelegate: self)
         vc.view.layer.cornerRadius = 20
         vc.view.clipsToBounds = true
         vc.view.translatesAutoresizingMaskIntoConstraints = false
@@ -420,6 +429,66 @@ extension BookReaderVC: ReaderSettingVCDelegate {
             self?.settingBar.willMove(toParent: nil)
             self?.settingBar.removeFromParent()
             self?.settingBar.view.removeFromSuperview()
+            self?.blurView.removeFromSuperview()
+        }
+        
+        
+        
+    }
+}
+
+extension BookReaderVC: BookTranslateSettingsVCDelegate {
+    func BookTranslateSettingsTapped() {
+        presentBookTranslateSettingsBar()
+    }
+    
+    func doneTranslateButtonTapped() {
+        dismissBookTranslateSettingsBar()
+    }
+    
+    func presentBookTranslateSettingsBar() {
+        blurView.effect = UIBlurEffect(style: .systemThinMaterial)
+        
+        view.addSubview(blurView)
+        blurView.alpha = 0
+        
+        addChild(BookTranslateSettingsBar)
+        view.addSubview(BookTranslateSettingsBar.view)
+        BookTranslateSettingsBar.didMove(toParent: self)
+        
+        NSLayoutConstraint.activate([
+            BookTranslateSettingsBar.view.topAnchor.constraint(equalTo: topBar.topAnchor),
+            BookTranslateSettingsBar.view.leftAnchor.constraint(equalTo: bottomBar.leftAnchor),
+            BookTranslateSettingsBar.view.rightAnchor.constraint(equalTo: bottomBar.rightAnchor),
+            BookTranslateSettingsBar.view.bottomAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 210),
+            
+            blurView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            blurView.topAnchor.constraint(equalTo: view.topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            blurView.rightAnchor.constraint(equalTo: view.rightAnchor),
+        ])
+        
+        let shifting = BookTranslateSettingsBar.view.bounds.height + 40
+        BookTranslateSettingsBar.view.transform = CGAffineTransform(translationX: 0, y: shifting)
+        
+        UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseIn) { [weak self] in
+            self?.BookTranslateSettingsBar.view.transform = CGAffineTransform(translationX: 0, y: 0)
+            self?.blurView.alpha = 1
+        } completion: { _ in}
+        
+    }
+    
+    func dismissBookTranslateSettingsBar() {
+        
+        let shifting = BookTranslateSettingsBar.view.bounds.height + 40
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [weak self] in
+            self?.BookTranslateSettingsBar.view.transform = CGAffineTransform(translationX: 0, y: shifting)
+            self?.blurView.alpha = 0
+        } completion: { [weak self] _ in
+            self?.BookTranslateSettingsBar.willMove(toParent: nil)
+            self?.BookTranslateSettingsBar.removeFromParent()
+            self?.BookTranslateSettingsBar.view.removeFromSuperview()
             self?.blurView.removeFromSuperview()
         }
         
