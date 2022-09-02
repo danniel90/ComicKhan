@@ -71,7 +71,7 @@ final class BookReaderVC: DynamicConstraintViewController {
     }()
     
     private lazy var BookTranslateSettingsBar: BookTranslateSettingsVC = {
-        let vc = BookTranslateSettingsVC(settingDelegate: self)
+        let vc = BookTranslateSettingsVC(settingDelegate: self, comic: self.comic)
         vc.view.layer.cornerRadius = 20
         vc.view.clipsToBounds = true
         vc.view.translatesAutoresizingMaskIntoConstraints = false

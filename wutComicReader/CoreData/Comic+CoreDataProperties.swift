@@ -13,6 +13,9 @@ import CoreData
 extension Comic {
     @NSManaged public var id: UUID
     @NSManaged public var imageNames: [String]
+    @NSManaged public var inputLanguage: String?
+    @NSManaged public var lastOutputLanguage: String?
+    @NSManaged public var lastTranslateMode: Int16
     @NSManaged public var lastVisitedPage: Int16
     @NSManaged public var name: String
     @NSManaged public var thumbnailNames: [String]

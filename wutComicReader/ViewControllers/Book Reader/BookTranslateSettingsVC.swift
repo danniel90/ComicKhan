@@ -10,9 +10,11 @@ import UIKit
 import MLKit
 
 class BookTranslateSettingsVC: UINavigationController {
-    init(settingDelegate: BookTranslateSettingsVCDelegate? = nil) {
+    
+    init(settingDelegate: BookTranslateSettingsVCDelegate? = nil, comic: Comic?) {
         let vc = SettingVC()
         vc.delegate = settingDelegate
+        vc.comic = comic
         super.init(rootViewController: vc)
     }
     
@@ -99,7 +101,8 @@ protocol BookTranslateSettingsVCDelegate: AnyObject {
 }
 
 fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    
+    var comic : Comic? 
+    private(set) var dataService: DataService = Cores.main.dataService
     let locale = Locale.current
     lazy var bookTranslateSourceOptions: [String] = {
         var options = allLanguages.map {
@@ -135,7 +138,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         inputPickerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         inputPickerView.tag = 0
         inputPickerView.dataSource = self
-        inputPickerView.selectRow(bookTranslateSourceOptions.firstIndex(of: "none") ?? 0, inComponent: 0, animated: false)//TODO: LOAD BOOK OPTIONS
+        inputPickerView.selectRow(bookTranslateSourceOptions.firstIndex(of: comic?.inputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
         inputPickerView.delegate = self
         inputPickerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -147,7 +150,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         outputPickerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         outputPickerView.tag = 1
         outputPickerView.dataSource = self
-        outputPickerView.selectRow(bookTranslateTargetOptions.firstIndex(of: "none") ?? 0, inComponent: 0, animated: false)//TODO: LOAD BOOK OPTIONS
+        outputPickerView.selectRow(bookTranslateTargetOptions.firstIndex(of: comic?.lastOutputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
         outputPickerView.delegate = self
         outputPickerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -157,10 +160,9 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
     private lazy var translateModeSegmentControl: UISegmentedControl = {
         let view = UISegmentedControl(frame: .zero, actions: TranslateMode.allCases.map({ translateMode in
             return UIAction(title: translateMode.name, handler: { [weak self] _ in
-                self?.translateModeChanged(to: translateMode)
+                print("Translate Mode \(translateMode.rawValue) - \(translateMode.name)")
             })
         }))
-//        view.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: AppState.main.bookTranslateMode)!
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -202,6 +204,15 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
     }
     
     @objc private func doneTranslateButtonTapped() {
+        do {
+            let sourceLanguage = bookTranslateSourceOptions[bookTranslateSourcePicker.selectedRow(inComponent: 0)]
+            let targetLanguage = bookTranslateTargetOptions[bookTranslateTargetPicker.selectedRow(inComponent: 0)]
+            let translateMode =  TranslateMode.allCases[translateModeSegmentControl.selectedSegmentIndex]
+
+            try dataService.saveTranslateSettingsOf(comic: self.comic!, sourcelanguage: sourceLanguage, targetlanguage: targetLanguage, translateMode: translateMode)
+        } catch {
+            showAlert(with: "Oh!", description: "There is a problem with saving your comic translate settings")
+        }
         delegate?.doneTranslateButtonTapped()
     }
     
@@ -261,10 +272,14 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         
         stackView.addArrangedSubview(translateLanguagesStackView)
         stackView.addArrangedSubview(translateModeSegmentControl)
-    }
-    
-    private func translateModeChanged(to translateMode: TranslateMode) {
         
+        var lastTranslateMode: Int
+        if comic?.lastTranslateMode == 0 {
+            lastTranslateMode = TranslateMode.onDevice.rawValue
+        } else {
+            lastTranslateMode = Int(comic?.lastTranslateMode ?? 1)
+        }
+        translateModeSegmentControl.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: TranslateMode(rawValue: lastTranslateMode)!)!
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

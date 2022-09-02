@@ -218,6 +218,17 @@ final class DataService {
         }
     }
     
+    func saveTranslateSettingsOf(comic: Comic, sourcelanguage: String, targetlanguage: String, translateMode: TranslateMode) throws {
+        comic.inputLanguage = sourcelanguage
+        comic.lastOutputLanguage = targetlanguage
+        comic.lastTranslateMode = Int16(translateMode.rawValue)
+        do {
+            try managedContext.save()
+        }catch let err{
+            throw err
+        }
+    }
+    
     func comicAlreadyExistedInCoreData(withName comicname: String) -> Bool{
     
         let fetchRequest = NSFetchRequest<Comic>(entityName: "Comic")
