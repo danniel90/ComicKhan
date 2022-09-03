@@ -36,7 +36,8 @@ extension BookReaderVC {
                 let bookPage = BookPage()
                 bookPage.pageNumber = bookSingleImages.firstIndex(where: { $0 == bookImage })
                 bookPage.image1 = bookImage
-                
+                bookPage.delegate = self
+                bookPage.comic = self.comic
                 bookPages.append(bookPage)
             }
         case .double:
@@ -46,7 +47,8 @@ extension BookReaderVC {
                 bookPage.pageNumber = bookDoubleImages.firstIndex(where: { $0 == bookImages })
                 bookPage.image1 = bookImages.0
                 bookPage.image2 = bookImages.1
-                
+                bookPage.delegate = self
+                bookPage.comic = self.comic
                 bookPages.append(bookPage)
             }
         }

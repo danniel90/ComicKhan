@@ -324,6 +324,8 @@
 				E4596A05240803860030DB3E /* Views */,
 				E4288B5023DB314A00182E0B /* Extensions */,
 				E43C225428BA37D9006BAFDF /* ReaderPageMode.swift */,
+				65F6AB5A28BEDF9500D5AF55 /* TranslateMode.swift */,
+				6524D75828BFD9D500F29731 /* BookTranslateSettingsVC.swift */,
 			);
 			path = "Book Reader";
 			sourceTree = "<group>";
@@ -403,6 +405,10 @@
 				E426BCE423DF23BE00119927 /* Comic+CoreDataProperties.swift */,
 				E426BCE323DF23BE00119927 /* ComicGroup+CoreDataClass.swift */,
 				E426BCE223DF23BE00119927 /* ComicGroup+CoreDataProperties.swift */,
+				656EB39128C2F58B004A5E08 /* PageTranslationGroup+CoreDataClass.swift */,
+				656EB39028C2F58B004A5E08 /* PageTranslationGroup+CoreDataProperties.swift */,
+				656EB39228C2F58B004A5E08 /* PageTranslation+CoreDataClass.swift */,
+				656EB38F28C2F58B004A5E08 /* PageTranslation+CoreDataProperties.swift */,
 				E4CC122223A56099006CD29E /* coredata.xcdatamodeld */,
 				E4EC58B125A47150004D6190 /* ArrayOfStringTransformer.swift */,
 			);
@@ -693,6 +699,7 @@
 				E4AE1A2425E28E6000AEF86A /* Library+ExtractionErrorHandeling.swift in Sources */,
 				E465B11A2413FBAD00A6003D /* InfoVC.swift in Sources */,
 				E4E2834F28301DC500030C9D /* ReaderTheme.swift in Sources */,
+				65F6AB5B28BEDF9500D5AF55 /* TranslateMode.swift in Sources */,
 				E42576AC253458A8000F0D0D /* +NSLayoutContraint.swift in Sources */,
 				E4E8FCED22C28E4700A8B32D /* BookReaderVC.swift in Sources */,
 				E49C7C152418FEF4004DE82A /* ComicImage.swift in Sources */,
@@ -710,6 +717,7 @@
 				E4C51EFE245EF82700B8AC04 /* LoadingView.swift in Sources */,
 				E462BD07245583D90089AD5F /* LibraryFetchResultControllerHandler.swift in Sources */,
 				E4CE377F240D578600429C30 /* ProgressContainerView.swift in Sources */,
+				6524D75928BFD9D500F29731 /* BookTranslateSettingsVC.swift in Sources */,
 				E45A877D25FC99280011CF9F /* Cores.swift in Sources */,
 				E48253EA22D631B1001A0E85 /* Helper.swift in Sources */,
 				E4CE3783240D6CFB00429C30 /* Library+CollectionView.swift in Sources */,

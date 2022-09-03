@@ -10,12 +10,44 @@ import UIKit
 import MLKit
 
 class BookTranslateSettingsVC: UINavigationController {
+    let locale = Locale.current
+
+    public var allLanguages: [TranslateLanguage] {
+        get {
+            TranslateLanguage.allLanguages().sorted {
+                return locale.localizedString(forLanguageCode: $0.rawValue)!
+                < locale.localizedString(forLanguageCode: $1.rawValue)!
+            }
+        }
+    }
+    
+    public var bookTranslateSourceOptions: [String] {
+        get {
+            var options = allLanguages.map {
+                $0.rawValue
+            }
+            options.insert(contentsOf: ["none", "detect"], at: 0)
+            return options
+        }
+    }
+    
+    public var bookTranslateTargetOptions: [String] {
+        get {
+            var options = allLanguages.map {
+                $0.rawValue
+            }
+            options.insert("none", at: 0)
+            return options
+        }
+    }
     
     init(settingDelegate: BookTranslateSettingsVCDelegate? = nil, comic: Comic?) {
         let vc = SettingVC()
         vc.delegate = settingDelegate
         vc.comic = comic
         super.init(rootViewController: vc)
+        vc.bookTranslateSourceOptions = self.bookTranslateSourceOptions
+        vc.bookTranslateTargetOptions = self.bookTranslateTargetOptions
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -34,9 +66,9 @@ extension SettingVC: UIPickerViewDataSource, UIPickerViewDelegate {
         
         switch pickerView.tag {
         case 0:
-            count = bookTranslateSourceOptions.count
+            count = bookTranslateSourceOptions?.count ?? 0
         case 1:
-            count = bookTranslateTargetOptions.count
+            count = bookTranslateTargetOptions?.count ?? 0
         default:
             count = 0
         }
@@ -50,7 +82,7 @@ extension SettingVC: UIPickerViewDataSource, UIPickerViewDelegate {
         
         switch pickerView.tag {
         case 0:
-            let selectedOption = bookTranslateSourceOptions[row]
+            let selectedOption = bookTranslateSourceOptions?[row] ?? "none"
             if selectedOption == "none" || selectedOption == "detect" {
                 pickedString = selectedOption
             } else {
@@ -59,7 +91,7 @@ extension SettingVC: UIPickerViewDataSource, UIPickerViewDelegate {
             }
             
         case 1:
-            let selectedOption = bookTranslateTargetOptions[row]
+            let selectedOption = bookTranslateTargetOptions?[row] ?? "none"
             if selectedOption == "none" {
                 pickedString = selectedOption
             } else {
@@ -83,9 +115,9 @@ extension SettingVC: UIPickerViewDataSource, UIPickerViewDelegate {
         
         switch pickerView.tag {
         case 0:
-            message += bookTranslateSourceOptions[pickerView.selectedRow(inComponent: 0)]
+            message += bookTranslateSourceOptions?[pickerView.selectedRow(inComponent: 0)]  ?? "none"
         case 1:
-            message += bookTranslateTargetOptions[pickerView.selectedRow(inComponent: 0)]
+            message += bookTranslateTargetOptions?[pickerView.selectedRow(inComponent: 0)] ?? "none"
         default:
             message += ""
         }
@@ -101,29 +133,11 @@ protocol BookTranslateSettingsVCDelegate: AnyObject {
 }
 
 fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    var bookTranslateSourceOptions: [String]?
+    var bookTranslateTargetOptions: [String]?
     var comic : Comic? 
     private(set) var dataService: DataService = Cores.main.dataService
     let locale = Locale.current
-    lazy var bookTranslateSourceOptions: [String] = {
-        var options = allLanguages.map {
-            $0.rawValue
-        }
-        options.insert(contentsOf: ["none", "detect"], at: 0)
-        return options
-    }()
-    
-    lazy var bookTranslateTargetOptions: [String] = {
-        var options = allLanguages.map {
-            $0.rawValue
-        }
-        options.insert("none", at: 0)
-        return options
-    }()
-    
-    lazy var allLanguages = TranslateLanguage.allLanguages().sorted {
-        return locale.localizedString(forLanguageCode: $0.rawValue)!
-        < locale.localizedString(forLanguageCode: $1.rawValue)!
-    }
     
     weak var delegate: BookTranslateSettingsVCDelegate?
     
@@ -138,7 +152,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         inputPickerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         inputPickerView.tag = 0
         inputPickerView.dataSource = self
-        inputPickerView.selectRow(bookTranslateSourceOptions.firstIndex(of: comic?.inputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
+        inputPickerView.selectRow(bookTranslateSourceOptions?.firstIndex(of: comic?.inputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
         inputPickerView.delegate = self
         inputPickerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -150,7 +164,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         outputPickerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         outputPickerView.tag = 1
         outputPickerView.dataSource = self
-        outputPickerView.selectRow(bookTranslateTargetOptions.firstIndex(of: comic?.lastOutputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
+        outputPickerView.selectRow(bookTranslateTargetOptions?.firstIndex(of: comic?.lastOutputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
         outputPickerView.delegate = self
         outputPickerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -205,8 +219,8 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
     
     @objc private func doneTranslateButtonTapped() {
         do {
-            let sourceLanguage = bookTranslateSourceOptions[bookTranslateSourcePicker.selectedRow(inComponent: 0)]
-            let targetLanguage = bookTranslateTargetOptions[bookTranslateTargetPicker.selectedRow(inComponent: 0)]
+            let sourceLanguage = bookTranslateSourceOptions?[bookTranslateSourcePicker.selectedRow(inComponent: 0)] ?? "none"
+            let targetLanguage = bookTranslateTargetOptions?[bookTranslateTargetPicker.selectedRow(inComponent: 0)] ?? "none"
             let translateMode =  TranslateMode.allCases[translateModeSegmentControl.selectedSegmentIndex]
 
             try dataService.saveTranslateSettingsOf(comic: self.comic!, sourcelanguage: sourceLanguage, targetlanguage: targetLanguage, translateMode: translateMode)

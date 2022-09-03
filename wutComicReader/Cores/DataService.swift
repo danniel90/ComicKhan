@@ -252,6 +252,106 @@ final class DataService {
         return container
     }
     
+    func addNewPageTranslation(translationGroup: PageTranslationGroup, frame: CGRect, text: String) throws {
+        do {
+            let translation = PageTranslation(context: managedContext)
+//            translation.id = UUID()
+            translation.text = text
+            translation.frameX = Float(frame.origin.x)
+            translation.frameY = Float(frame.origin.y)
+            translation.frameHeight = Float(frame.height)
+            translation.frameWidth = Float(frame.width)
+            translation.ofPageTranslationGroup = translationGroup
+            
+            try managedContext.save()
+        } catch let err {
+            throw err
+        }
+    }
+    
+    private func fetchTranslationGroup(comic: Comic, on page: Int16) throws -> PageTranslationGroup? {
+        //fetch comic translationGroup for langugage and page
+        let fetchTranslationGroupRequest = NSFetchRequest<PageTranslationGroup>(entityName: "PageTranslationGroup")
+        let namePredicate = NSPredicate(format: "%K == %@", #keyPath(PageTranslationGroup.ofComic.name), comic.name!)
+        let languagePredicate = NSPredicate(format: "%K == %@", #keyPath(PageTranslationGroup.language), comic.lastOutputLanguage ?? "")
+        let pagePredicate = NSPredicate(format: "%K == %d", #keyPath(PageTranslationGroup.page), page)
+        
+        fetchTranslationGroupRequest.predicate = NSCompoundPredicate(
+            andPredicateWithSubpredicates: [
+                namePredicate,
+                languagePredicate,
+                pagePredicate
+            ]
+        )
+        
+        do {
+            let translationGroup = try managedContext.fetch(fetchTranslationGroupRequest)
+            return translationGroup.first
+        } catch let err {
+            throw err
+        }
+    }
+    
+    func addNewPageTranslationGroup(comic: Comic, language: String, page: Int16) throws -> PageTranslationGroup {
+        do {
+            let translationGroup = PageTranslationGroup(context: managedContext)
+            translationGroup.id = UUID()
+            translationGroup.language = language
+            translationGroup.page = page
+            translationGroup.ofComic = comic
+            
+            try managedContext.save()
+            
+            return translationGroup
+        } catch let err {
+            throw err
+        }
+    }
+    
+    func saveTranslationsToCoreData(comic: Comic, translationsResult:[(CGRect, String)], with language: String, on page: Int16) throws {
+        do {
+            var translationsGroupCoreData = try? fetchTranslationGroup(comic: comic, on: page)
+            if translationsGroupCoreData == nil {
+                //addNew
+                translationsGroupCoreData = try addNewPageTranslationGroup(comic: comic, language: language, page: page)
+            }
+            
+            if let translationsCoreData = translationsGroupCoreData?.pageTranslations?.allObjects as? [PageTranslation] {
+                for translation in translationsCoreData {
+                    managedContext.delete(translation)
+                }
+                try managedContext.save()
+            }
+            
+            for translationsResult in translationsResult {
+                let frame = translationsResult.0
+                let text = translationsResult.1
+                
+                let translation = PageTranslation(context: managedContext)
+                translation.id = UUID()
+                translation.text = text
+                translation.frameX = Float(frame.origin.x)
+                translation.frameY = Float(frame.origin.y)
+                translation.frameHeight = Float(frame.height)
+                translation.frameWidth = Float(frame.width)
+                translation.ofPageTranslationGroup = translationsGroupCoreData
+                try managedContext.save()
+            }
+        } catch let err {
+            throw err
+        }
+    }
+    
+    func fetchPageTranslationsOf(comic: Comic?, on page: Int16) throws -> [PageTranslation] {
+        do {
+            let translationGroup = try fetchTranslationGroup(comic: comic!, on: page)
+            guard let translations = translationGroup?.pageTranslations?.allObjects as? [PageTranslation] else { return [] }
+            return translations
+        } catch let err {
+            throw err
+        }
+    }
+    
     
 }
 

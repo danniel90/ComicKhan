@@ -8,7 +8,14 @@
 
 import UIKit
 
+protocol BookPageDelegate: AnyObject {
+    func imageDidChange(at pageViewIndex: Int)
+    func saveTranslationsToCoreData(at pageViewIndex: Int, on page: Int, translationsResult: [(CGRect, String)])
+}
+
 final class BookPage: UIViewController , UIScrollViewDelegate {
+    weak var delegate: BookPageDelegate?
+    var comic: Comic?
     
     //MARK: Variables
     
@@ -87,10 +94,38 @@ final class BookPage: UIViewController , UIScrollViewDelegate {
         }
     }
     
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if pageImageView1.image?.size != .zero ||
+            pageImageView1.image?.size != nil {
+            
+            if self.delegate != nil {
+                self.delegate?.imageDidChange(at: 1)
+            }
+        }
+        
+        if pageImageView2.image?.size != .zero ||
+            pageImageView2.image?.size != nil {
+
+            if self.delegate != nil {
+                self.delegate?.imageDidChange(at: 2)
+            }
+        }
+    }
+    
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         pageImageView1.image = UIImage()
         pageImageView2.image = UIImage()
+        
+        for annotationView in pageImageView1.subviews {
+            annotationView.removeFromSuperview()
+        }
+        
+        for annotationView in pageImageView2.subviews {
+            annotationView.removeFromSuperview()
+        }
     }
     
     override func viewDidLayoutSubviews() {

@@ -20,6 +20,7 @@ extension Comic {
     @NSManaged public var name: String
     @NSManaged public var thumbnailNames: [String]
     @NSManaged public var ofComicGroup: ComicGroup?
+    @NSManaged public var pagesTranslations: PageTranslationGroup?
     @NSManaged public var groupName: String
     
     static var entityName: String = "Comic"

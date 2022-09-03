@@ -11,6 +11,7 @@
         <attribute name="name" attributeType="String"/>
         <attribute name="thumbnailNames" attributeType="Transformable" valueTransformerName="ArrayOfStringsTransformer" customClassName="NSArray"/>
         <relationship name="ofComicGroup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ComicGroup" inverseName="comics" inverseEntity="ComicGroup"/>
+        <relationship name="pagesTranslations" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PageTranslationGroup" inverseName="ofComic" inverseEntity="PageTranslationGroup"/>
     </entity>
     <entity name="ComicGroup" representedClassName="ComicGroup" syncable="YES" codeGenerationType="class">
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
@@ -18,8 +19,26 @@
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="comics" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Comic" inverseName="ofComicGroup" inverseEntity="Comic"/>
     </entity>
+    <entity name="PageTranslation" representedClassName="PageTranslation" syncable="YES" codeGenerationType="class">
+        <attribute name="frameHeight" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="frameWidth" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="frameX" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="frameY" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <relationship name="ofPageTranslationGroup" maxCount="1" deletionRule="Nullify" destinationEntity="PageTranslationGroup" inverseName="pageTranslations" inverseEntity="PageTranslationGroup"/>
+    </entity>
+    <entity name="PageTranslationGroup" representedClassName="PageTranslationGroup" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="language" optional="YES" attributeType="String"/>
+        <attribute name="page" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="ofComic" maxCount="1" deletionRule="Nullify" destinationEntity="Comic" inverseName="pagesTranslations" inverseEntity="Comic"/>
+        <relationship name="pageTranslations" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PageTranslation" inverseName="ofPageTranslationGroup" inverseEntity="PageTranslation"/>
+    </entity>
     <elements>
-        <element name="Comic" positionX="-63" positionY="-18" width="128" height="179"/>
-        <element name="ComicGroup" positionX="-54" positionY="18" width="128" height="103"/>
+        <element name="Comic" positionX="-63" positionY="-18" width="128" height="208"/>
+        <element name="ComicGroup" positionX="-85.44921875" positionY="218.3828125" width="128" height="103"/>
+        <element name="PageTranslation" positionX="239.6015625" positionY="259.1796875" width="128" height="148"/>
+        <element name="PageTranslationGroup" positionX="275.9296875" positionY="90.578125" width="128" height="118"/>
     </elements>
 </model>
