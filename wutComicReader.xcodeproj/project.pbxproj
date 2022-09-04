@@ -301,6 +301,8 @@
 			children = (
 				E4288B4D23DB30E000182E0B /* thumbnailCollectionView.swift */,
 				E4288B5323DB31D600182E0B /* bookPageControllerExtensions.swift */,
+				6552026028C3BE6B0059E6EA /* BookReaderVC+BookPageDelegate.swift */,
+				6552026228C3C3350059E6EA /* BookReaderVC+TextProcessing.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -424,8 +426,6 @@
 				E4AE1A2325E28E6000AEF86A /* Library+ExtractionErrorHandeling.swift */,
 				E455AFDE245EA30D003F403D /* Library+DocumentBrowser.swift */,
 				E499A0BB2840C20F002F8351 /* Library+FetchRsultHandlerDelegate.swift */,
-				6552026028C3BE6B0059E6EA /* BookReaderVC+BookPageDelegate.swift */,
-				6552026228C3C3350059E6EA /* BookReaderVC+TextProcessing.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";

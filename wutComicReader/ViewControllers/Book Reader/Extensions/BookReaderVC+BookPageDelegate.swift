@@ -18,16 +18,16 @@ extension BookReaderVC: BookPageDelegate {
         }
     }
     
-    func imageDidChange(at pageViewIndex: Int) {
+    func imageDidChange(at pageViewIndex: Int, on pageNumber: Int?) {
         removeDetectionAnnotations(at: pageViewIndex)
         
         let pageView = self.getPageView(at: pageViewIndex)
         guard let image = pageView.image else { return }
         guard comic?.inputLanguage != nil && comic?.inputLanguage != "none" else { return }
-        guard let pageNumber = self.currentPage?.pageNumber else { return }
+        guard pageNumber != nil else { return }
         
         //try fetch from store
-        let translationsFromCoreData = fetchTranslationsFromCoreData(on: pageNumber)
+        let translationsFromCoreData = fetchTranslationsFromCoreData(on: pageNumber!)
         if translationsFromCoreData.count > 0 {
             let pageView = self.getPageView(at: pageViewIndex)
 
@@ -73,7 +73,7 @@ extension BookReaderVC: BookPageDelegate {
         let visionImage = VisionImage(image: image)
         visionImage.orientation = image.imageOrientation
         DispatchQueue.global(qos: .userInitiated).async {
-            self.process(visionImage, with: textRecognizer, at: pageViewIndex)
+            self.process(visionImage, with: textRecognizer, at: pageViewIndex, on: pageNumber!)
         }
     }
 }

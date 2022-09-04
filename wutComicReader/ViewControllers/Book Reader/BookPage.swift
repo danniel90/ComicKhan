@@ -9,7 +9,7 @@
 import UIKit
 
 protocol BookPageDelegate: AnyObject {
-    func imageDidChange(at pageViewIndex: Int)
+    func imageDidChange(at pageViewIndex: Int, on pageNumber: Int?)
     func saveTranslationsToCoreData(at pageViewIndex: Int, on page: Int, translationsResult: [(CGRect, String)])
 }
 
@@ -97,19 +97,21 @@ final class BookPage: UIViewController , UIScrollViewDelegate {
     
     
     override func viewDidAppear(_ animated: Bool) {
-        if pageImageView1.image?.size != .zero ||
-            pageImageView1.image?.size != nil {
-            
-            if self.delegate != nil {
-                self.delegate?.imageDidChange(at: 1)
+        if self.delegate != nil {
+            if pageImageView1.image?.size != .zero ||
+                pageImageView1.image?.size != nil {
+                
+                if let pageNumber = self.image1?.pageNumber {
+                    self.delegate?.imageDidChange(at: 1, on: pageNumber)
+                }
             }
-        }
-        
-        if pageImageView2.image?.size != .zero ||
-            pageImageView2.image?.size != nil {
+            
+            if pageImageView2.image?.size != .zero ||
+                pageImageView2.image?.size != nil {
 
-            if self.delegate != nil {
-                self.delegate?.imageDidChange(at: 2)
+                if let pageNumber = self.image2?.pageNumber {
+                    self.delegate?.imageDidChange(at: 2, on: pageNumber)
+                }
             }
         }
     }

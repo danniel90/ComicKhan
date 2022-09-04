@@ -79,7 +79,7 @@ extension BookReaderVC {
         return transform
     }
     
-    func process(_ visionImage: VisionImage, with textRecognizer: TextRecognizer?, at pageViewIndex: Int) {
+    func process(_ visionImage: VisionImage, with textRecognizer: TextRecognizer?, at pageViewIndex: Int, on pageNumber: Int) {
         weak var weakSelf = self
         textRecognizer?.process(visionImage) { [self] text, error in
             guard let strongSelf = weakSelf else {
@@ -108,7 +108,7 @@ extension BookReaderVC {
             switch translateMode
             {
             case .onDevice:
-                strongSelf.translateOnDevice(displayResults, at: pageViewIndex)
+                strongSelf.translateOnDevice(displayResults, at: pageViewIndex, on: pageNumber)
                 //TODO: ENABLE ONLINE MODE TRANSLATE
             default:
                 print("ONLINE MODE PENDING")
@@ -151,7 +151,7 @@ extension BookReaderVC {
         }
     }
     
-    private func translateOnDevice(_ displayResults: [(CGRect, UITextView, String)], at pageViewIndex: Int) {
+    private func translateOnDevice(_ displayResults: [(CGRect, UITextView, String)], at pageViewIndex: Int, on pageNumber: Int) {
         let inputLanguage = comic?.inputLanguage ?? "none"
         let outputLanguage = comic?.lastOutputLanguage ?? "none"
         guard inputLanguage != "none" && outputLanguage != "none" else {
@@ -197,7 +197,7 @@ extension BookReaderVC {
                             if (index == (displayResults.count - 1)) {
                                 print("[BookReaderVC.translate] Reached \(index) translated item, saving results to CoreData.")
                                 let bookPage = strongSelf.bookPageViewController.viewControllers?.first as! BookPage
-                                bookPage.delegate?.saveTranslationsToCoreData(at: pageViewIndex, on: bookPage.pageNumber!, translationsResult: translateResults)
+                                bookPage.delegate?.saveTranslationsToCoreData(at: pageViewIndex, on: pageNumber, translationsResult: translateResults)
                             }
                         }
                     }
