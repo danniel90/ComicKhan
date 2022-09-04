@@ -29,15 +29,16 @@ extension BookReaderVC: BookPageDelegate {
         //try fetch from store
         let translationsFromCoreData = fetchTranslationsFromCoreData(on: pageNumber!)
         if translationsFromCoreData.count > 0 {
-            let pageView = self.getPageView(at: pageViewIndex)
+            DispatchQueue.main.async {
+                let pageView = self.getPageView(at: pageViewIndex)
 
-            for (transformedRect, translatedText) in translationsFromCoreData {
-                let displayResult = self.getTextView(transformedRect, translatedText)
-                let label = displayResult.1
-                label.backgroundColor = .black
-                pageView.addSubview(label)
+                for (transformedRect, translatedText) in translationsFromCoreData {
+                    let displayResult = self.getTextView(transformedRect, translatedText)
+                    let label = displayResult.1
+                    label.backgroundColor = .black
+                    pageView.addSubview(label)
+                }
             }
-
             return
         }
         //if fetch empty

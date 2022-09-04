@@ -143,6 +143,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
     
     private lazy var tableView: UITableView = {
         let view = UITableView(frame: .zero, style: .insetGrouped)
+        view.tag = 0
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -181,6 +182,30 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         return view
     }()
     
+    private lazy var downloadedLanguagesButton: UIButton = {
+        let button = UIButton(frame: .zero)
+        let deleteImage = #imageLiteral(resourceName: "ic-actions-trash").withRenderingMode(.alwaysTemplate)
+        button.setImage(deleteImage, for: .normal)
+        button.isEnabled = false
+        button.addTarget(self,
+                         action: #selector(downloadedLanguagesButtonTapped),
+                         for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var downloadedLanguagesTable:UITableView = {
+        let downloadedLanguagesTable = UITableView(frame: .zero)
+        downloadedLanguagesTable.tag = 1
+        downloadedLanguagesTable.allowsMultipleSelection = true
+        downloadedLanguagesTable.dataSource = self
+        downloadedLanguagesTable.delegate = self
+        downloadedLanguagesTable.register(UITableViewCell.self, forCellReuseIdentifier: "DownloadedLanguage")
+        downloadedLanguagesTable.translatesAutoresizingMaskIntoConstraints = false
+        downloadedLanguagesTable.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        
+        return downloadedLanguagesTable
+    }()
+    
     private var translateCell = UITableViewCell()
     
     private let cellInset: CGFloat = 10
@@ -215,6 +240,10 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         configureTranslateCell()
         
         
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        self.downloadedLanguagesTable.reloadData()
     }
     
     @objc private func doneTranslateButtonTapped() {
@@ -283,9 +312,25 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
             stackView.topAnchor.constraint(equalTo: translateCell.contentView.topAnchor, constant: cellInset),
             stackView.bottomAnchor.constraint(equalTo: translateCell.contentView.bottomAnchor, constant: -cellInset),
         ])
-        
-        stackView.addArrangedSubview(translateLanguagesStackView)
+                
         stackView.addArrangedSubview(translateModeSegmentControl)
+        stackView.addArrangedSubview(translateLanguagesStackView)
+        
+        let downloadedLanguagesStackView = UIStackView()
+        downloadedLanguagesStackView.axis = .horizontal
+        downloadedLanguagesStackView.distribution = .fillProportionally
+        downloadedLanguagesStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let downloadedLanguagesLabel = UILabel()
+        downloadedLanguagesLabel.text = "Downloaded Languages:"
+        downloadedLanguagesLabel.font = AppState.main.font.body
+        downloadedLanguagesLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        downloadedLanguagesStackView.addArrangedSubview(downloadedLanguagesLabel)
+        downloadedLanguagesStackView.addArrangedSubview(downloadedLanguagesButton)
+        
+        stackView.addArrangedSubview(downloadedLanguagesStackView)
+        stackView.addArrangedSubview(downloadedLanguagesTable)
         
         var lastTranslateMode: Int
         if comic?.lastTranslateMode == 0 {
@@ -296,18 +341,109 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         translateModeSegmentControl.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: TranslateMode(rawValue: lastTranslateMode)!)!
     }
     
+    @objc
+    func downloadedLanguagesButtonTapped() {
+        print("Button pressed")
+        guard let indexPathsForSelectedRows = downloadedLanguagesTable.indexPathsForSelectedRows else { return }
+        for indexPath in indexPathsForSelectedRows {
+            
+            let language = ModelManager.modelManager()
+                .downloadedTranslateModels
+                .map { $0.language }[indexPath.row]
+            
+            let model = TranslateRemoteModel.translateRemoteModel(language: language)
+            let modelManager = ModelManager.modelManager()
+            let languageName = Locale.current.localizedString(forLanguageCode: language.rawValue)!
+            weak var weakSelf = self
+            if modelManager.isModelDownloaded(model) {
+                guard let strongSelf = weakSelf else {
+                  print("Self is nil!")
+                  return
+                }
+                print("Deleting \(languageName)")
+                modelManager.deleteDownloadedModel(model) { error in
+                    print("Deleted \(languageName) \(error.debugDescription)")
+                    strongSelf.downloadedLanguagesTable.reloadData()
+                    strongSelf.downloadedLanguagesButton.isEnabled = false
+                }
+            }
+        }
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        var count = 0
+        switch tableView.tag
+        {
+        case 0:
+            count = 1
+        case 1:
+            count = ModelManager.modelManager().downloadedTranslateModels.count
+        default:
+            count = 0
+        }
+        return count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.row == 0 {
-            return translateCell
+        let cell: UITableViewCell
+        
+        switch tableView.tag
+        {
+        case 0:
+            if indexPath.row == 0 {
+                cell = translateCell
+            } else {
+                fatalError()
+            }
+        case 1:
+            cell = tableView.dequeueReusableCell(withIdentifier: "DownloadedLanguage")! as UITableViewCell
+            cell.textLabel?.text = ModelManager.modelManager()
+                .downloadedTranslateModels
+                .map { model in Locale.current.localizedString(forLanguageCode: model.language.rawValue)! }[indexPath.row]
+            let selectedIndexPaths = tableView.indexPathsForSelectedRows
+            let rowIsSelected = selectedIndexPaths != nil && selectedIndexPaths!.contains(indexPath)
+            cell.accessoryType = rowIsSelected ? .checkmark : .none
+        default:
+            fatalError()
         }
-        
-        fatalError()
-        
-        
+       
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if tableView.tag == 1 {
+            guard let cell = tableView.cellForRow(at: indexPath) else { return }
+            
+            let language = ModelManager.modelManager()
+                .downloadedTranslateModels
+                .map { $0.language }[indexPath.row]
+            if language == .english { //english will not be deleted by mlkit, idk
+                tableView.deselectRow(at: indexPath, animated: false)
+                return
+            }
+            
+            cell.accessoryType = .checkmark
+            downloadedLanguagesButton.isEnabled = true
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        if tableView.tag == 1 {
+            guard let cell = tableView.cellForRow(at: indexPath) else { return }
+            cell.accessoryType = .none
+            if tableView.indexPathsForSelectedRows == nil {
+                downloadedLanguagesButton.isEnabled = false
+            } else if tableView.indexPathsForSelectedRows?.count == 1  {
+                tableView.indexPathsForSelectedRows?.forEach { indexPath in
+                    let language = ModelManager.modelManager()
+                        .downloadedTranslateModels
+                        .map { $0.language }[indexPath.row]
+                    if language == .english { //english will not be deleted by mlkit, idk
+                        downloadedLanguagesButton.isEnabled = false
+                    }
+                }
+            }
+        }
     }
 }
 
