@@ -182,13 +182,13 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         return view
     }()
     
-    private lazy var downloadedLanguagesButton: UIButton = {
+    private lazy var deleteDownloadedLanguagesButton: UIButton = {
         let button = UIButton(frame: .zero)
         let deleteImage = #imageLiteral(resourceName: "ic-actions-trash").withRenderingMode(.alwaysTemplate)
         button.setImage(deleteImage, for: .normal)
         button.isEnabled = false
         button.addTarget(self,
-                         action: #selector(downloadedLanguagesButtonTapped),
+                         action: #selector(deleteDownloadedLanguagesButtonTapped),
                          for: .touchUpInside)
         return button
     }()
@@ -204,6 +204,34 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         downloadedLanguagesTable.heightAnchor.constraint(equalToConstant: 100).isActive = true
         
         return downloadedLanguagesTable
+    }()
+    
+    private lazy var translatedPagesTotals: [(String, Int)] = {
+        return fetchPageTranslationsTotals()
+    }()
+    
+    private lazy var deleteTranslatedPagesButton: UIButton = {
+        let button = UIButton(frame: .zero)
+        let deleteImage = #imageLiteral(resourceName: "ic-actions-trash").withRenderingMode(.alwaysTemplate)
+        button.setImage(deleteImage, for: .normal)
+        button.isEnabled = false
+        button.addTarget(self,
+                         action: #selector(deleteTranslatedPagesButtonTapped),
+                         for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var translatedPagesTable:UITableView = {
+        let translatedPagesTable = UITableView(frame: .zero)
+        translatedPagesTable.tag = 2
+        translatedPagesTable.allowsMultipleSelection = true
+        translatedPagesTable.dataSource = self
+        translatedPagesTable.delegate = self
+        translatedPagesTable.register(UITableViewCell.self, forCellReuseIdentifier: "TranslatedPage")
+        translatedPagesTable.translatesAutoresizingMaskIntoConstraints = false
+        translatedPagesTable.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        
+        return translatedPagesTable
     }()
     
     private var translateCell = UITableViewCell()
@@ -244,6 +272,14 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
     
     override func viewDidAppear(_ animated: Bool) {
         self.downloadedLanguagesTable.reloadData()
+        
+        self.reloadTranslatedPageTotals()
+        self.translatedPagesTable.reloadData()
+        
+    }
+    
+    func reloadTranslatedPageTotals() {
+        self.translatedPagesTotals = fetchPageTranslationsTotals()
     }
     
     @objc private func doneTranslateButtonTapped() {
@@ -316,6 +352,14 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         stackView.addArrangedSubview(translateModeSegmentControl)
         stackView.addArrangedSubview(translateLanguagesStackView)
         
+        var lastTranslateMode: Int
+        if comic?.lastTranslateMode == 0 {
+            lastTranslateMode = TranslateMode.onDevice.rawValue
+        } else {
+            lastTranslateMode = Int(comic?.lastTranslateMode ?? 1)
+        }
+        translateModeSegmentControl.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: TranslateMode(rawValue: lastTranslateMode)!)!
+        
         let downloadedLanguagesStackView = UIStackView()
         downloadedLanguagesStackView.axis = .horizontal
         downloadedLanguagesStackView.distribution = .fillProportionally
@@ -327,23 +371,51 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         downloadedLanguagesLabel.translatesAutoresizingMaskIntoConstraints = false
         
         downloadedLanguagesStackView.addArrangedSubview(downloadedLanguagesLabel)
-        downloadedLanguagesStackView.addArrangedSubview(downloadedLanguagesButton)
+        downloadedLanguagesStackView.addArrangedSubview(deleteDownloadedLanguagesButton)
         
         stackView.addArrangedSubview(downloadedLanguagesStackView)
         stackView.addArrangedSubview(downloadedLanguagesTable)
         
-        var lastTranslateMode: Int
-        if comic?.lastTranslateMode == 0 {
-            lastTranslateMode = TranslateMode.onDevice.rawValue
-        } else {
-            lastTranslateMode = Int(comic?.lastTranslateMode ?? 1)
-        }
-        translateModeSegmentControl.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: TranslateMode(rawValue: lastTranslateMode)!)!
+        
+        let translatedPagesStackView = UIStackView()
+        translatedPagesStackView.axis = .horizontal
+        translatedPagesStackView.distribution = .fillProportionally
+        translatedPagesStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let translatedPagesLabel = UILabel()
+        translatedPagesLabel.text = "Translated Pages:"
+        translatedPagesLabel.font = AppState.main.font.body
+        translatedPagesLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        translatedPagesStackView.addArrangedSubview(translatedPagesLabel)
+        translatedPagesStackView.addArrangedSubview(deleteTranslatedPagesButton)
+        
+        stackView.addArrangedSubview(translatedPagesStackView)
+        stackView.addArrangedSubview(translatedPagesTable)
     }
     
     @objc
-    func downloadedLanguagesButtonTapped() {
-        print("Button pressed")
+    func deleteTranslatedPagesButtonTapped() {
+        do {
+            print("deleteTranslatedPagesButtonTapped Tapped")
+            guard let indexPathsForSelectedRows = translatedPagesTable.indexPathsForSelectedRows else { return }
+            guard let comic = comic else { return }
+            for indexPath in indexPathsForSelectedRows {
+                let languageCode = translatedPagesTotals[indexPath.row].0
+                try dataService.deletePageTranslationsFromCoreData(comic: comic, with: languageCode)
+                
+                self.reloadTranslatedPageTotals()
+                self.translatedPagesTable.reloadData()
+                self.deleteTranslatedPagesButton.isEnabled = false
+            }
+        } catch {
+            showAlert(with: "Oh!", description: "There is a problem with saving your comic translate settings")
+        }
+    }
+    
+    @objc
+    func deleteDownloadedLanguagesButtonTapped() {
+        print("deleteDownloadedLanguagesButton pressed")
         guard let indexPathsForSelectedRows = downloadedLanguagesTable.indexPathsForSelectedRows else { return }
         for indexPath in indexPathsForSelectedRows {
             
@@ -364,10 +436,20 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
                 modelManager.deleteDownloadedModel(model) { error in
                     print("Deleted \(languageName) \(error.debugDescription)")
                     strongSelf.downloadedLanguagesTable.reloadData()
-                    strongSelf.downloadedLanguagesButton.isEnabled = false
+                    strongSelf.deleteDownloadedLanguagesButton.isEnabled = false
                 }
             }
         }
+    }
+    
+    func fetchPageTranslationsTotals() -> [(String, Int)] {
+        var result:[(String, Int)] = []
+        do {
+            result = try dataService.fetchPageTranslationsTotalsOf(comic: comic)
+        } catch {
+            showAlert(with: "Oh!", description: "There is a problem with loading your comic translated pages totals")
+        }
+        return result
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -378,6 +460,8 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
             count = 1
         case 1:
             count = ModelManager.modelManager().downloadedTranslateModels.count
+        case 2:
+            count = translatedPagesTotals.count
         default:
             count = 0
         }
@@ -403,6 +487,17 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
             let selectedIndexPaths = tableView.indexPathsForSelectedRows
             let rowIsSelected = selectedIndexPaths != nil && selectedIndexPaths!.contains(indexPath)
             cell.accessoryType = rowIsSelected ? .checkmark : .none
+        case 2:
+            let languageCode = translatedPagesTotals[indexPath.row].0
+            let language = Locale.current.localizedString(forLanguageCode: languageCode)!
+            let pageTotals = translatedPagesTotals[indexPath.row].1
+            
+            cell = tableView.dequeueReusableCell(withIdentifier: "TranslatedPage")! as UITableViewCell
+            cell.textLabel?.text = "\(language): \(pageTotals)"
+            
+            let selectedIndexPaths = tableView.indexPathsForSelectedRows
+            let rowIsSelected = selectedIndexPaths != nil && selectedIndexPaths!.contains(indexPath)
+            cell.accessoryType = rowIsSelected ? .checkmark : .none
         default:
             fatalError()
         }
@@ -423,7 +518,12 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
             }
             
             cell.accessoryType = .checkmark
-            downloadedLanguagesButton.isEnabled = true
+            deleteDownloadedLanguagesButton.isEnabled = true
+        } else if tableView.tag == 2 {
+            guard let cell = tableView.cellForRow(at: indexPath) else { return }
+            
+            cell.accessoryType = .checkmark
+            deleteTranslatedPagesButton.isEnabled = true
         }
     }
     
@@ -432,16 +532,22 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
             guard let cell = tableView.cellForRow(at: indexPath) else { return }
             cell.accessoryType = .none
             if tableView.indexPathsForSelectedRows == nil {
-                downloadedLanguagesButton.isEnabled = false
+                deleteDownloadedLanguagesButton.isEnabled = false
             } else if tableView.indexPathsForSelectedRows?.count == 1  {
                 tableView.indexPathsForSelectedRows?.forEach { indexPath in
                     let language = ModelManager.modelManager()
                         .downloadedTranslateModels
                         .map { $0.language }[indexPath.row]
                     if language == .english { //english will not be deleted by mlkit, idk
-                        downloadedLanguagesButton.isEnabled = false
+                        deleteDownloadedLanguagesButton.isEnabled = false
                     }
                 }
+            }
+        } else if tableView.tag == 2 {
+            guard let cell = tableView.cellForRow(at: indexPath) else { return }
+            cell.accessoryType = .none
+            if tableView.indexPathsForSelectedRows == nil {
+                deleteTranslatedPagesButton.isEnabled = false
             }
         }
     }

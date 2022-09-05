@@ -352,6 +352,75 @@ final class DataService {
         }
     }
     
+    //https://www.cocoanetics.com/2017/04/group-by-count-and-sum-in-coredata/
+    func fetchPageTranslationsTotalsOf(comic: Comic?) throws -> [(String, Int)] {
+        let keypathExp =  NSExpression(forKeyPath: #keyPath(PageTranslationGroup.page))
+        
+        let countDesc = NSExpressionDescription()
+        countDesc.expression = NSExpression(forFunction: "count:", arguments: [keypathExp])
+        countDesc.name = "count"
+        countDesc.expressionResultType = .integer64AttributeType
+
+        let request = NSFetchRequest<NSDictionary>(entityName: "PageTranslationGroup")
+        request.propertiesToFetch = [#keyPath(PageTranslationGroup.language), countDesc]
+        request.propertiesToGroupBy = [#keyPath(PageTranslationGroup.language)]
+        request.predicate = NSPredicate(format: "%K == %@", #keyPath(PageTranslationGroup.ofComic.name), comic!.name!)
+        request.returnsObjectsAsFaults = false
+        request.resultType = .dictionaryResultType
+        
+        do {
+            let fetchResult = try managedContext.fetch(request)
+            return fetchResult.compactMap { item in
+                (
+                    item.value(forKey: "language") as! String,
+                    item.value(forKey: "count") as! Int
+                )
+            }
+        } catch let err {
+            throw err
+        }
+    }
+    
+    private func fetchTranslationGroup(comic: Comic, with language: String) throws -> [PageTranslationGroup?] {
+        //fetch comic translationGroup for langugage and page
+        let fetchTranslationGroupRequest = NSFetchRequest<PageTranslationGroup>(entityName: "PageTranslationGroup")
+        let namePredicate = NSPredicate(format: "%K == %@", #keyPath(PageTranslationGroup.ofComic.name), comic.name!)
+        let languagePredicate = NSPredicate(format: "%K == %@", #keyPath(PageTranslationGroup.language), language)
+        
+        
+        let compoundPredicate = NSCompoundPredicate(
+            andPredicateWithSubpredicates: [
+                namePredicate,
+                languagePredicate,
+            ]
+        )
+        let sortDescriptor = NSSortDescriptor(key: #keyPath(PageTranslationGroup.language), ascending: true)
+        
+        fetchTranslationGroupRequest.predicate = compoundPredicate
+        fetchTranslationGroupRequest.sortDescriptors = [sortDescriptor]
+        
+        do {
+            let translationGroups = try managedContext.fetch(fetchTranslationGroupRequest)
+            return translationGroups
+        } catch let err {
+            throw err
+        }
+    }
+    
+    func deletePageTranslationsFromCoreData(comic: Comic, with language: String) throws {
+        do {
+            let translationsGroupCoreData = try? fetchTranslationGroup(comic: comic, with: language)
+            
+            if let translationsGroupCoreData = translationsGroupCoreData as? [PageTranslationGroup] {
+                for translationGroup in translationsGroupCoreData {
+                    managedContext.delete(translationGroup)
+                }
+                try managedContext.save()
+            }
+        } catch let err {
+            throw err
+        }
+    }
     
 }
 
