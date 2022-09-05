@@ -13,10 +13,6 @@
 		65B8564528C5982C0058C7A5 /* BookReaderVC+BookPageDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564328C5982C0058C7A5 /* BookReaderVC+BookPageDelegate.swift */; };
 		65B8564728C5987A0058C7A5 /* BookTranslateSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564628C5987A0058C7A5 /* BookTranslateSettingsVC.swift */; };
 		65B8564928C598870058C7A5 /* TranslateMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564828C598870058C7A5 /* TranslateMode.swift */; };
-		65B8564E28C598B20058C7A5 /* PageTranslationGroup+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564A28C598B20058C7A5 /* PageTranslationGroup+CoreDataClass.swift */; };
-		65B8564F28C598B20058C7A5 /* PageTranslation+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564B28C598B20058C7A5 /* PageTranslation+CoreDataProperties.swift */; };
-		65B8565028C598B20058C7A5 /* PageTranslation+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564C28C598B20058C7A5 /* PageTranslation+CoreDataClass.swift */; };
-		65B8565128C598B20058C7A5 /* PageTranslationGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B8564D28C598B20058C7A5 /* PageTranslationGroup+CoreDataProperties.swift */; };
 		E407CB8323FD3D780056F64D /* RoundedProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E407CB8223FD3D780056F64D /* RoundedProgressView.swift */; };
 		E407CB8523FD3DD80056F64D /* CircleProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E407CB8423FD3DD80056F64D /* CircleProgressView.swift */; };
 		E40A353323F97C83006FA758 /* Library+ProgressContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E40A353223F97C83006FA758 /* Library+ProgressContainer.swift */; };
@@ -719,7 +715,6 @@
 				E465B11A2413FBAD00A6003D /* InfoVC.swift in Sources */,
 				E4E2834F28301DC500030C9D /* ReaderTheme.swift in Sources */,
 				E42576AC253458A8000F0D0D /* +NSLayoutContraint.swift in Sources */,
-				65B8564F28C598B20058C7A5 /* PageTranslation+CoreDataProperties.swift in Sources */,
 				E4E8FCED22C28E4700A8B32D /* BookReaderVC.swift in Sources */,
 				E49C7C152418FEF4004DE82A /* ComicImage.swift in Sources */,
 				E40C7A9F22A1168C00D7CD17 /* LibraryVC.swift in Sources */,
@@ -733,7 +728,6 @@
 				E407CB8323FD3D780056F64D /* RoundedProgressView.swift in Sources */,
 				E45213A922D4927D00216217 /* ComicExteractor.swift in Sources */,
 				E4D3920123EEA23800E8C873 /* NewGroupVC.swift in Sources */,
-				65B8564E28C598B20058C7A5 /* PageTranslationGroup+CoreDataClass.swift in Sources */,
 				E4C51EFE245EF82700B8AC04 /* LoadingView.swift in Sources */,
 				E462BD07245583D90089AD5F /* LibraryFetchResultControllerHandler.swift in Sources */,
 				E4CE377F240D578600429C30 /* ProgressContainerView.swift in Sources */,
@@ -752,7 +746,6 @@
 				E44FA70C23F0015C00338457 /* LibraryReusableView.swift in Sources */,
 				E4EBC304241E886600F558AF /* EmptyGroupView.swift in Sources */,
 				E4C596F7283BA25E004C71D9 /* AppFont.swift in Sources */,
-				65B8565028C598B20058C7A5 /* PageTranslation+CoreDataClass.swift in Sources */,
 				E45A878B25FCB8410011CF9F /* UIKitPreview.swift in Sources */,
 				65B8564928C598870058C7A5 /* TranslateMode.swift in Sources */,
 				E4EBC306241E8D4C00F558AF /* Library+EmptyViewDelegate.swift in Sources */,
@@ -764,7 +757,6 @@
 				E4C3D175261E09D7007CC0E1 /* AppState.swift in Sources */,
 				E411C7F525BF44F9006D45A5 /* ExtractionDirectory.swift in Sources */,
 				E4596A042407E7650030DB3E /* ReaderBottomBar.swift in Sources */,
-				65B8565128C598B20058C7A5 /* PageTranslationGroup+CoreDataProperties.swift in Sources */,
 				E40A353323F97C83006FA758 /* Library+ProgressContainer.swift in Sources */,
 				E40C0EB223944A8200D2E561 /* AppFileManager.swift in Sources */,
 				E40C7A9D22A1168C00D7CD17 /* AppDelegate.swift in Sources */,
