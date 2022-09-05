@@ -308,12 +308,13 @@ final class DataService {
         }
     }
     
-    func saveTranslationsToCoreData(comic: Comic, translationsResult:[(CGRect, String)], with language: String, on page: Int16) throws {
+    func saveTranslationsToCoreData(comic: Comic?, translationsResult:[(CGRect, String)], with language: String, on page: Int16) throws {
         do {
-            var translationsGroupCoreData = try? fetchTranslationGroup(comic: comic, on: page)
+            guard comic != nil else { return }
+            var translationsGroupCoreData = try? fetchTranslationGroup(comic: comic!, on: page)
             if translationsGroupCoreData == nil {
                 //addNew
-                translationsGroupCoreData = try addNewPageTranslationGroup(comic: comic, language: language, page: page)
+                translationsGroupCoreData = try addNewPageTranslationGroup(comic: comic!, language: language, page: page)
             }
             
             if let translationsCoreData = translationsGroupCoreData?.pageTranslations?.allObjects as? [PageTranslation] {

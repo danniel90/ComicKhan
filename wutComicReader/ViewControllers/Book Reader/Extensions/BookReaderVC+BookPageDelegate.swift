@@ -14,7 +14,7 @@ extension BookReaderVC: BookPageDelegate {
                 return
             }
 
-            try? dataService.saveTranslationsToCoreData(comic: comic!, translationsResult: translationsResult, with: language, on: Int16(page))
+            try? dataService.saveTranslationsToCoreData(comic: comic, translationsResult: translationsResult, with: language, on: Int16(page))
         }
     }
     
