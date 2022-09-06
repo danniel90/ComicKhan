@@ -409,7 +409,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
                 self.deleteTranslatedPagesButton.isEnabled = false
             }
         } catch {
-            showAlert(with: "Oh!", description: "There is a problem with saving your comic translate settings")
+            showAlert(with: "Oh!", description: "There is a problem with deleting your comic translated pages")
         }
     }
     

@@ -9,6 +9,7 @@
 import UIKit
 import Combine
 import MLKit
+import Vision
 
 
 protocol TopBarDelegate: AnyObject {
@@ -21,6 +22,9 @@ final class BookReaderVC: DynamicConstraintViewController {
     //MARK: Variables
     private(set) var dataService: DataService = Cores.main.dataService
     var translator: Translator!
+    var requestHandler: VNImageRequestHandler? //for text extraction
+    var textRecognitionRequest: VNRecognizeTextRequest!
+    lazy var languageId = LanguageIdentification.languageIdentification()
     let locale = Locale.current
     
     var comic : Comic? {
@@ -142,11 +146,79 @@ final class BookReaderVC: DynamicConstraintViewController {
         topBar.title = comic?.name
         
         updateTranslatorOptions()
+        // Create the request.
+        textRecognitionRequest = VNRecognizeTextRequest(completionHandler: { (request, error) in
+            if let results = request.results, !results.isEmpty {
+                if let requestResults = request.results as? [VNRecognizedTextObservation] {
+                    var recognizedTextString = ""
+                    for observation in requestResults {
+                        let recognizedText = observation.topCandidates(1)[0].string
+                        recognizedTextString += "\(recognizedText.replacingOccurrences(of: "\r\n|\n|\r|\n", with: " ")) "
+                        if recognizedText.count > 200 {
+                            continue
+                        }
+                    }
+                    
+                    print("Recoginized Text String: \(recognizedTextString)")
+                    
+                    self.languageId.identifyLanguage(for: recognizedTextString) { (languageTag, error) in
+                        if let error = error {
+                        print("Failed with error: \(error)")
+                        return
+                        }
+
+                        print("Identified Language: \(languageTag!)")
+                        if let languageCode = languageTag, languageCode != "und" {
+                            self.comic?.inputLanguage = languageCode
+
+                            let language = Locale.current.localizedString(forLanguageCode: languageCode)!
+                            self.showAlert(with: "Identified \(language) Language", description: "Identified \(language) (\(languageCode)) language in first sentences of comic page.")
+                        } else {
+                            self.showAlert(with: "Language Not Identified in first attempt, will retry", description: "Could not identify the language in first senteces of comic page. Will retry the language identification")
+                            
+                            self.languageId.identifyPossibleLanguages(for: recognizedTextString) { (identifiedLanguages, error) in
+                                if let error = error {
+                                    print("Failed with error: \(error)")
+                                    return
+                                }
+
+                                let text = "Identified Languages:\n"
+                                    + identifiedLanguages!.map {
+                                          String(format: "(%@, %.2f)", $0.languageTag, $0.confidence)
+                                    }.joined(separator: "\n")
+                                print(text)
+                                
+                                let identifiedLanguages = identifiedLanguages!
+                                    .map{
+                                        ($0.languageTag, $0.confidence)
+                                    }
+                                    .sorted{
+                                        $0.1 > $1.1
+                                    }
+                                let languageCode = identifiedLanguages.first?.0
+                                let confidence = identifiedLanguages.first?.1
+                                
+                                if let languageCode = languageCode, languageCode != "und", let confidence = confidence {
+                                    self.comic?.inputLanguage = languageCode
+
+                                    let language = Locale.current.localizedString(forLanguageCode: languageCode)!
+                                    self.showAlert(with: "Identified \(language) Language", description: "Identified \(language) (\(languageCode)) language in first sentences of comic page with a \(confidence*100) confidence.")
+                                } else {
+                                    self.showAlert(with: "Language Not Identified", description: "Could not identify the language in first senteces of comic page.")
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+//                self.showAlert(with: "Oh!", description: "Could not recognize text in comic page.")
+                print("Could not recognize text in comic page.")
+            }
+        })
         
         
         let LastpageNumber = (comic?.lastVisitedPage) ?? 1
         setLastViewedPage(toPageWithNumber: Int(LastpageNumber), withAnimate: true)
-        
     }
     
     

@@ -6,6 +6,7 @@
 //
 
 import MLKit
+import Vision
 
 extension BookReaderVC: BookPageDelegate {
     func saveTranslationsToCoreData(at pageViewIndex: Int, on page: Int, translationsResult: [(CGRect, String)]) {
@@ -47,6 +48,25 @@ extension BookReaderVC: BookPageDelegate {
         var languageOptions: CommonTextRecognizerOptions
 
         let language = comic?.inputLanguage
+        
+        if language == "detect" {
+            print("detect input language selected for translate")
+
+            if let cgImage = image.cgImage {
+                // Create the request handler.
+                requestHandler = VNImageRequestHandler(cgImage: cgImage)
+                
+                // Perform the request.
+                performOCRLanguageDetectRequest()
+            } else {
+                // Clean up the Vision objects.
+                textRecognitionRequest.cancel()
+                requestHandler = nil
+            }
+            //temp
+            return
+        }
+        
         switch language {
         case "zh":
             languageOptions = ChineseTextRecognizerOptions()
@@ -59,11 +79,9 @@ extension BookReaderVC: BookPageDelegate {
             return
         //TODO: DETECT LANGUAGE
         case "":
+            print("no input language selected for translate")
             return
         case nil:
-            return
-        case "detect":
-            print("detect input language selected for translate")
             return
         default:
             languageOptions = TextRecognizerOptions()
