@@ -366,7 +366,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         downloadedLanguagesStackView.translatesAutoresizingMaskIntoConstraints = false
         
         let downloadedLanguagesLabel = UILabel()
-        downloadedLanguagesLabel.text = "Downloaded Languages:"
+        downloadedLanguagesLabel.text = "On Device Languages:"
         downloadedLanguagesLabel.font = AppState.main.font.body
         downloadedLanguagesLabel.translatesAutoresizingMaskIntoConstraints = false
         
@@ -383,7 +383,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         translatedPagesStackView.translatesAutoresizingMaskIntoConstraints = false
         
         let translatedPagesLabel = UILabel()
-        translatedPagesLabel.text = "Translated Pages:"
+        translatedPagesLabel.text = "Translated Pages Totals:"
         translatedPagesLabel.font = AppState.main.font.body
         translatedPagesLabel.translatesAutoresizingMaskIntoConstraints = false
         
@@ -483,7 +483,14 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
             cell = tableView.dequeueReusableCell(withIdentifier: "DownloadedLanguage")! as UITableViewCell
             cell.textLabel?.text = ModelManager.modelManager()
                 .downloadedTranslateModels
-                .map { model in Locale.current.localizedString(forLanguageCode: model.language.rawValue)! }[indexPath.row]
+                .map { model in
+                    let languageCode = model.language.rawValue
+                    var language = Locale.current.localizedString(forLanguageCode:languageCode)!
+                    if model.language == .english {
+                        language += " (Permanent)"
+                    }
+                    return language
+                }[indexPath.row]
             let selectedIndexPaths = tableView.indexPathsForSelectedRows
             let rowIsSelected = selectedIndexPaths != nil && selectedIndexPaths!.contains(indexPath)
             cell.accessoryType = rowIsSelected ? .checkmark : .none

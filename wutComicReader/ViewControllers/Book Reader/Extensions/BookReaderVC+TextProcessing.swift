@@ -227,12 +227,6 @@ extension BookReaderVC {
         
         weak var weakSelf = self
         
-        var uri = "https://translate.goo";
-        uri += "gleapis.com/transl";
-        uri += "ate_a";
-        uri += "/singl";
-        uri += "e?client=gtx&sl=" + (from ?? "auto") + "&tl=" + to + "&dt=t" + "&ie=UTF-8&oe=UTF-8&otf=1&ssel=0&tsel=0&kc=7&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&q=";
-        
         DispatchQueue.global(qos: .userInteractive).async {
             for (index,(transformedRect, label, textString)) in displayResults.enumerated() {
                 let text = textString
@@ -240,6 +234,11 @@ extension BookReaderVC {
                     print("Self is nil!")
                     return
                 }
+                var uri = "https://translate.goo";
+                uri += "gleapis.com/transl";
+                uri += "ate_a";
+                uri += "/singl";
+                uri += "e?client=gtx&sl=" + (from ?? "auto") + "&tl=" + to + "&dt=t" + "&ie=UTF-8&oe=UTF-8&otf=1&ssel=0&tsel=0&kc=7&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&q=";
                 
                 uri += text.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
                 
@@ -265,7 +264,7 @@ extension BookReaderVC {
                                 }
                             }
                             let detectedLanguage = json[2] as? String
-                            let translationResult = result
+                            let translationResult = result.replacingOccurrences(of: "\n", with: " ")
                             
                             var fromLang: String?
                             if let lang = detectedLanguage {
