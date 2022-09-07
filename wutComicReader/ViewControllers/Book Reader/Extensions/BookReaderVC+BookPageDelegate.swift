@@ -43,9 +43,6 @@ extension BookReaderVC: BookPageDelegate {
             return
         }
         //if fetch empty
-        //TODO: detect
-        var textRecognizer: TextRecognizer
-        var languageOptions: CommonTextRecognizerOptions
 
         let language = comic?.inputLanguage
         
@@ -53,7 +50,7 @@ extension BookReaderVC: BookPageDelegate {
             print("detect input language selected for translate")
 
             if let cgImage = image.cgImage {
-                // Create the request handler.
+                // Create a new request handler.
                 requestHandler = VNImageRequestHandler(cgImage: cgImage)
                 
                 // Perform the request.
@@ -63,9 +60,17 @@ extension BookReaderVC: BookPageDelegate {
                 textRecognitionRequest.cancel()
                 requestHandler = nil
             }
-            //temp
             return
         }
+        
+        self.preProcess(with: language, at: pageViewIndex, on: pageNumber!)
+    }
+    
+    func preProcess(with language: String?, at pageViewIndex: Int, on pageNumber: Int) {
+        let pageView = self.getPageView(at: pageViewIndex)
+        guard let image = pageView.image else { return }
+        var textRecognizer: TextRecognizer
+        var languageOptions: CommonTextRecognizerOptions
         
         switch language {
         case "zh":
@@ -77,7 +82,9 @@ extension BookReaderVC: BookPageDelegate {
         case "none":
             print("none input language selected for translate")
             return
-        //TODO: DETECT LANGUAGE
+        case "detect":
+            print("input language should've been selected for translate")
+            return
         case "":
             print("no input language selected for translate")
             return
@@ -92,7 +99,7 @@ extension BookReaderVC: BookPageDelegate {
         let visionImage = VisionImage(image: image)
         visionImage.orientation = image.imageOrientation
         DispatchQueue.global(qos: .userInitiated).async {
-            self.process(visionImage, with: textRecognizer, at: pageViewIndex, on: pageNumber!)
+            self.process(visionImage, with: textRecognizer, at: pageViewIndex, on: pageNumber)
         }
     }
 }

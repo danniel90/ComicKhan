@@ -7,7 +7,6 @@
 
 import UIKit
 import MLKit
-import Vision
 
 extension BookReaderVC {
     // MARK: - Private
@@ -308,36 +307,4 @@ extension BookReaderVC {
             }
         }
     }
-    
-    func updateLanguageDetectRequestParameters() {
-        textRecognitionRequest.recognitionLevel = .accurate
-        textRecognitionRequest.usesCPUOnly = false
-        
-        do {
-        // Set the primary language.
-        if #available(iOS 15.0, *) {
-            textRecognitionRequest.recognitionLanguages = try textRecognitionRequest.supportedRecognitionLanguages()
-            textRecognitionRequest.recognitionLanguages.insert(contentsOf: ["zh-Hans", "zh-Hant"], at: 0)
-        } else {
-            // Fallback on earlier versions
-            // .accurate
-            //https://stackoverflow.com/a/60654614
-            textRecognitionRequest.recognitionLanguages = ["zh-Hans", "zh-Hant", "en-US", "fr-FR", "it-IT", "de-DE", "es-ES", "pt-BR"]
-        }
-        } catch {
-            showAlert(with: "Oh!", description: "There is a problem with loading Apple's recognitionLanguages for language detection.")
-        }
-    }
-    
-    func performOCRLanguageDetectRequest() {
-        textRecognitionRequest.cancel()
-        
-        updateLanguageDetectRequestParameters()
-        DispatchQueue.global(qos: .userInteractive).async { [unowned self] in
-            do {
-                try self.requestHandler?.perform([self.textRecognitionRequest])
-            } catch _ {}
-        }
-    }
-    
 }

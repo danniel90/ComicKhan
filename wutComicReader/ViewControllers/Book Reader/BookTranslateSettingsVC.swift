@@ -201,7 +201,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         downloadedLanguagesTable.delegate = self
         downloadedLanguagesTable.register(UITableViewCell.self, forCellReuseIdentifier: "DownloadedLanguage")
         downloadedLanguagesTable.translatesAutoresizingMaskIntoConstraints = false
-        downloadedLanguagesTable.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        downloadedLanguagesTable.heightAnchor.constraint(equalToConstant: 150).isActive = true
         
         return downloadedLanguagesTable
     }()
@@ -229,7 +229,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         translatedPagesTable.delegate = self
         translatedPagesTable.register(UITableViewCell.self, forCellReuseIdentifier: "TranslatedPage")
         translatedPagesTable.translatesAutoresizingMaskIntoConstraints = false
-        translatedPagesTable.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        translatedPagesTable.heightAnchor.constraint(equalToConstant: 300).isActive = true
         
         return translatedPagesTable
     }()
@@ -299,7 +299,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.distribution = .fill
+        stackView.distribution = .fillProportionally
         stackView.spacing = 10
         stackView.translatesAutoresizingMaskIntoConstraints = false
                 
@@ -311,7 +311,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         //SOURCE
         let sourceLanguageStackView = UIStackView()
         sourceLanguageStackView.axis = .horizontal
-        sourceLanguageStackView.distribution = .fillProportionally
+        sourceLanguageStackView.distribution = .equalSpacing
         sourceLanguageStackView.translatesAutoresizingMaskIntoConstraints = false
         
         let sourceLanguageLabel = UILabel()
@@ -321,12 +321,12 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         
         sourceLanguageStackView.addArrangedSubview(sourceLanguageLabel)
         sourceLanguageStackView.addArrangedSubview(bookTranslateSourcePicker)
-        sourceLanguageStackView.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        sourceLanguageStackView.heightAnchor.constraint(equalToConstant: 50).isActive = true
         
         //TARGET
         let targetLanguageStackView = UIStackView()
         targetLanguageStackView.axis = .horizontal
-        targetLanguageStackView.distribution = .fillProportionally
+        targetLanguageStackView.distribution = .equalSpacing
         targetLanguageStackView.translatesAutoresizingMaskIntoConstraints = false
         
         let targetLanguageLabel = UILabel()
@@ -336,7 +336,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         
         targetLanguageStackView.addArrangedSubview(targetLanguageLabel)
         targetLanguageStackView.addArrangedSubview(bookTranslateTargetPicker)
-        bookTranslateTargetPicker.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        bookTranslateTargetPicker.heightAnchor.constraint(equalToConstant: 50).isActive = true
                 
         translateLanguagesStackView.addArrangedSubview(sourceLanguageStackView)
         translateLanguagesStackView.addArrangedSubview(targetLanguageStackView)
@@ -383,7 +383,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         translatedPagesStackView.translatesAutoresizingMaskIntoConstraints = false
         
         let translatedPagesLabel = UILabel()
-        translatedPagesLabel.text = "Translated Pages Totals:"
+        translatedPagesLabel.text = "Translated Pages:"
         translatedPagesLabel.font = AppState.main.font.body
         translatedPagesLabel.translatesAutoresizingMaskIntoConstraints = false
         

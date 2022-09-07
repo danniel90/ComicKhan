@@ -147,74 +147,7 @@ final class BookReaderVC: DynamicConstraintViewController {
         
         updateTranslatorOptions()
         // Create the request.
-        textRecognitionRequest = VNRecognizeTextRequest(completionHandler: { (request, error) in
-            if let results = request.results, !results.isEmpty {
-                if let requestResults = request.results as? [VNRecognizedTextObservation] {
-                    var recognizedTextString = ""
-                    for observation in requestResults {
-                        let recognizedText = observation.topCandidates(1)[0].string
-                        recognizedTextString += "\(recognizedText.replacingOccurrences(of: "\r\n|\n|\r|\n", with: " ")) "
-                        if recognizedText.count > 200 {
-                            continue
-                        }
-                    }
-                    
-                    print("Recoginized Text String: \(recognizedTextString)")
-                    
-                    self.languageId.identifyLanguage(for: recognizedTextString) { (languageTag, error) in
-                        if let error = error {
-                        print("Failed with error: \(error)")
-                        return
-                        }
-
-                        print("Identified Language: \(languageTag!)")
-                        if let languageCode = languageTag, languageCode != "und" {
-                            self.comic?.inputLanguage = languageCode
-
-                            let language = Locale.current.localizedString(forLanguageCode: languageCode)!
-                            self.showAlert(with: "Identified \(language) Language", description: "Identified \(language) (\(languageCode)) language in first sentences of comic page.")
-                        } else {
-                            self.showAlert(with: "Language Not Identified in first attempt, will retry", description: "Could not identify the language in first senteces of comic page. Will retry the language identification")
-                            
-                            self.languageId.identifyPossibleLanguages(for: recognizedTextString) { (identifiedLanguages, error) in
-                                if let error = error {
-                                    print("Failed with error: \(error)")
-                                    return
-                                }
-
-                                let text = "Identified Languages:\n"
-                                    + identifiedLanguages!.map {
-                                          String(format: "(%@, %.2f)", $0.languageTag, $0.confidence)
-                                    }.joined(separator: "\n")
-                                print(text)
-                                
-                                let identifiedLanguages = identifiedLanguages!
-                                    .map{
-                                        ($0.languageTag, $0.confidence)
-                                    }
-                                    .sorted{
-                                        $0.1 > $1.1
-                                    }
-                                let languageCode = identifiedLanguages.first?.0
-                                let confidence = identifiedLanguages.first?.1
-                                
-                                if let languageCode = languageCode, languageCode != "und", let confidence = confidence {
-                                    self.comic?.inputLanguage = languageCode
-
-                                    let language = Locale.current.localizedString(forLanguageCode: languageCode)!
-                                    self.showAlert(with: "Identified \(language) Language", description: "Identified \(language) (\(languageCode)) language in first sentences of comic page with a \(confidence*100) confidence.")
-                                } else {
-                                    self.showAlert(with: "Language Not Identified", description: "Could not identify the language in first senteces of comic page.")
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-//                self.showAlert(with: "Oh!", description: "Could not recognize text in comic page.")
-                print("Could not recognize text in comic page.")
-            }
-        })
+        textRecognitionRequest = VNRecognizeTextRequest(completionHandler: recognizeTextHandler)
         
         
         let LastpageNumber = (comic?.lastVisitedPage) ?? 1
@@ -541,10 +474,10 @@ extension BookReaderVC: BookTranslateSettingsVCDelegate {
         BookTranslateSettingsBar.didMove(toParent: self)
         
         NSLayoutConstraint.activate([
-            BookTranslateSettingsBar.view.topAnchor.constraint(equalTo: topBar.topAnchor),
+            BookTranslateSettingsBar.view.topAnchor.constraint(equalTo: topBar.bottomAnchor),
             BookTranslateSettingsBar.view.leftAnchor.constraint(equalTo: bottomBar.leftAnchor),
             BookTranslateSettingsBar.view.rightAnchor.constraint(equalTo: bottomBar.rightAnchor),
-            BookTranslateSettingsBar.view.bottomAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 210),
+            BookTranslateSettingsBar.view.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: 210),
             
             blurView.leftAnchor.constraint(equalTo: view.leftAnchor),
             blurView.topAnchor.constraint(equalTo: view.topAnchor),
