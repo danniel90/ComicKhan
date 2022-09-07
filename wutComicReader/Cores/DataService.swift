@@ -218,6 +218,15 @@ final class DataService {
         }
     }
     
+    func saveInputLanguageOf(comic: Comic, inputLanguage: String) throws {
+        comic.inputLanguage = inputLanguage
+        do {
+            try managedContext.save()
+        }catch let err{
+            throw err
+        }
+    }
+    
     func saveTranslateSettingsOf(comic: Comic, sourcelanguage: String, targetlanguage: String, translateMode: TranslateMode) throws {
         comic.inputLanguage = sourcelanguage
         comic.lastOutputLanguage = targetlanguage

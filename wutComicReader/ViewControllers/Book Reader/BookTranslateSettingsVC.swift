@@ -271,11 +271,28 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        self.reloadTranslateModeSegmentControl()
+        self.reloadTranslatePickers()
         self.downloadedLanguagesTable.reloadData()
         
         self.reloadTranslatedPageTotals()
         self.translatedPagesTable.reloadData()
         
+    }
+    
+    func reloadTranslateModeSegmentControl() {
+        var lastTranslateMode: Int
+        if comic?.lastTranslateMode == 0 {
+            lastTranslateMode = TranslateMode.onDevice.rawValue
+        } else {
+            lastTranslateMode = Int(comic?.lastTranslateMode ?? 1)
+        }
+        translateModeSegmentControl.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: TranslateMode(rawValue: lastTranslateMode)!)!
+    }
+    
+    func reloadTranslatePickers() {
+        self.bookTranslateSourcePicker.selectRow(bookTranslateSourceOptions?.firstIndex(of: comic?.inputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
+        self.bookTranslateTargetPicker.selectRow(bookTranslateTargetOptions?.firstIndex(of: comic?.lastOutputLanguage ?? "none") ?? 0, inComponent: 0, animated: false)
     }
     
     func reloadTranslatedPageTotals() {
@@ -352,13 +369,7 @@ fileprivate final class SettingVC: UIViewController, UITableViewDelegate, UITabl
         stackView.addArrangedSubview(translateModeSegmentControl)
         stackView.addArrangedSubview(translateLanguagesStackView)
         
-        var lastTranslateMode: Int
-        if comic?.lastTranslateMode == 0 {
-            lastTranslateMode = TranslateMode.onDevice.rawValue
-        } else {
-            lastTranslateMode = Int(comic?.lastTranslateMode ?? 1)
-        }
-        translateModeSegmentControl.selectedSegmentIndex = TranslateMode.allCases.firstIndex(of: TranslateMode(rawValue: lastTranslateMode)!)!
+        self.reloadTranslateModeSegmentControl()
         
         let downloadedLanguagesStackView = UIStackView()
         downloadedLanguagesStackView.axis = .horizontal

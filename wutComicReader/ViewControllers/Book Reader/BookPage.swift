@@ -97,6 +97,10 @@ final class BookPage: UIViewController , UIScrollViewDelegate {
     
     
     override func viewDidAppear(_ animated: Bool) {
+        self.startImageProcessing()
+    }
+    
+    public func startImageProcessing() {
         if self.delegate != nil {
             if pageImageView1.image?.size != .zero ||
                 pageImageView1.image?.size != nil {

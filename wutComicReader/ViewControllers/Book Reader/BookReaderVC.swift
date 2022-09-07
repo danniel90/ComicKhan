@@ -510,7 +510,8 @@ extension BookReaderVC: BookTranslateSettingsVCDelegate {
         }
         
         
-        
+        let bookPage = self.bookPageViewController.viewControllers?.first as! BookPage
+        bookPage.startImageProcessing()
     }
 }
 

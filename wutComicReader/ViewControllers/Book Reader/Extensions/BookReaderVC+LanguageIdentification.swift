@@ -22,9 +22,9 @@ extension BookReaderVC {
                                continue
                            }
                        }
-                       
+
                        print("Recoginized Text String: \(recognizedTextString)")
-                       identifyLanguage(recognizedTextString)
+                       self.identifyLanguage(recognizedTextString)
                    }
                } else {
    //                self.showAlert(with: "Oh!", description: "Could not recognize text in comic page.")
@@ -42,10 +42,13 @@ extension BookReaderVC {
 
             print("Identified Language: \(languageTag!)")
             if let languageCode = languageTag, languageCode != "und" {
-                self.comic?.inputLanguage = languageCode
+                try? self.dataService.saveInputLanguageOf(comic: self.comic!, inputLanguage: languageCode)
 
                 let language = Locale.current.localizedString(forLanguageCode: languageCode)!
                 self.showAlert(with: "Identified \(language) Language", description: "Identified \(language) (\(languageCode)) language in first sentences of comic page.")
+                
+                let bookPage = self.bookPageViewController.viewControllers?.first as! BookPage
+                bookPage.startImageProcessing()
             } else {
                 self.showAlert(with: "Language Not Identified in first attempt, will retry", description: "Could not identify the language in first senteces of comic page. Will retry the language identification")
                 
@@ -78,10 +81,13 @@ extension BookReaderVC {
             let confidence = identifiedLanguages.first?.1
             
             if let languageCode = languageCode, languageCode != "und", let confidence = confidence {
-                self.comic?.inputLanguage = languageCode
+                try? self.dataService.saveInputLanguageOf(comic: self.comic!, inputLanguage: languageCode)
 
                 let language = Locale.current.localizedString(forLanguageCode: languageCode)!
                 self.showAlert(with: "Identified \(language) Language", description: "Identified \(language) (\(languageCode)) language in first sentences of comic page with a \(confidence*100) confidence.")
+                
+                let bookPage = self.bookPageViewController.viewControllers?.first as! BookPage
+                bookPage.startImageProcessing()
             } else {
                 self.showAlert(with: "Language Not Identified", description: "Could not identify the language in first senteces of comic page.")
             }
