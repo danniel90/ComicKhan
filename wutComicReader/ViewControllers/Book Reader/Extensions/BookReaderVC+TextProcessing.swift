@@ -97,7 +97,8 @@ extension BookReaderVC {
             for block in text.blocks {
                 let transformedRect = block.frame.applying(strongSelf.transformMatrix(pageView))
                 let displayResult = strongSelf.getTextView(transformedRect, block.text)
-                pageView.addSubview(displayResult.1)
+                let label = displayResult.1
+                pageView.addSubview(label)
                 displayResults.append(displayResult)
             }
             
@@ -121,13 +122,42 @@ extension BookReaderVC {
     func getTextView(_ transformedRect: CGRect, _ text: String) -> (CGRect, UITextView, String) {
         let label = UITextView(frame: transformedRect)
         label.text = text
+        label.textAlignment = .left
+        label.contentInset = UIEdgeInsets(top: -7.0,left: 0.0,bottom: 0,right: 0.0);//https://stackoverflow.com/a/39848685
         label.font = .systemFont(ofSize: 200)
         label.isUserInteractionEnabled = true
+        label.isSelectable = true
+        label.isEditable = false
         label.isScrollEnabled = true
         label.scrollRangeToVisible(NSRange(location: 0,length: 0))
         label.setContentOffset(CGPoint(x: 0,y: 0), animated: false)
+        label.addGestureRecognizer(getLongPressGestureRecognizer())
         self.updateTextFont(label)
         return (transformedRect, label, text)
+    }
+    
+    func getLongPressGestureRecognizer() -> UILongPressGestureRecognizer {
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.textViewLongPressed))
+        longPressGestureRecognizer.minimumPressDuration = 0.5
+        return longPressGestureRecognizer
+    }
+    
+    @objc func textViewLongPressed(_ sender: UIGestureRecognizer) {
+        print("textViewLongPressed")
+        // Activate textviews: 0. Select individual 1.Select All 2. Deselect All 3. Refresh 4. Delete 5. pseudo rich text editor 5.1 font sizes 5.2 locations
+        
+        switch sender.state {
+        case .began:
+            if let textView = sender.view as? UITextView {
+                textView.backgroundColor = .systemBlue
+            }
+        case .ended:
+            if let textView = sender.view as? UITextView {
+                textView.backgroundColor = .black
+            }
+        default:
+            return
+        }
     }
     
     //https://stackoverflow.com/a/27115350

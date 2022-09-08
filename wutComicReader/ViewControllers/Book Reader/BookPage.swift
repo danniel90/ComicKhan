@@ -74,6 +74,9 @@ final class BookPage: UIViewController , UIScrollViewDelegate {
         super.viewDidLoad()
         setupDesign()
         scrollView.delegate = self
+        // for adding tap gestures to dynamically added textviews
+        self.pageImageView1.isUserInteractionEnabled = true
+        self.pageImageView2.isUserInteractionEnabled = true
     }
     
     
