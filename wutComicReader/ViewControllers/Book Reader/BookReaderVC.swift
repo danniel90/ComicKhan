@@ -15,6 +15,7 @@ import Vision
 protocol TopBarDelegate: AnyObject {
     func dismissViewController()
     func BookTranslateSettingsTapped()
+    func TranslatePageTapped()
 }
 
 final class BookReaderVC: DynamicConstraintViewController {
@@ -231,6 +232,8 @@ final class BookReaderVC: DynamicConstraintViewController {
         tapGesture.require(toFail: doubletapGesture)
         
     }
+    
+    var firstLocationPageView: CGPoint?
     
     private func addGuideViewIfNeeded() {
         if AppState.main.readerPresentForFirstTime() {
@@ -457,6 +460,11 @@ extension BookReaderVC: ReaderSettingVCDelegate {
 extension BookReaderVC: BookTranslateSettingsVCDelegate {
     func BookTranslateSettingsTapped() {
         presentBookTranslateSettingsBar()
+    }
+    
+    func TranslatePageTapped() {
+        let bookPage = self.bookPageViewController.viewControllers?.first as! BookPage
+        bookPage.restartImageProcessing()
     }
     
     func doneTranslateButtonTapped() {

@@ -9,7 +9,7 @@
 import UIKit
 
 protocol BookPageDelegate: AnyObject {
-    func imageDidChange(at pageViewIndex: Int, on pageNumber: Int?)
+    func imageTranslate(at pageViewIndex: Int, on pageNumber: Int?, isRefresh: Bool)
     func saveTranslationsToCoreData(at pageViewIndex: Int, on page: Int, translationsResult: [(CGRect, String)])
 }
 
@@ -109,7 +109,7 @@ final class BookPage: UIViewController , UIScrollViewDelegate {
                 pageImageView1.image?.size != nil {
                 
                 if let pageNumber = self.image1?.pageNumber {
-                    self.delegate?.imageDidChange(at: 1, on: pageNumber)
+                    self.delegate?.imageTranslate(at: 1, on: pageNumber, isRefresh: false)
                 }
             }
             
@@ -117,7 +117,27 @@ final class BookPage: UIViewController , UIScrollViewDelegate {
                 pageImageView2.image?.size != nil {
 
                 if let pageNumber = self.image2?.pageNumber {
-                    self.delegate?.imageDidChange(at: 2, on: pageNumber)
+                    self.delegate?.imageTranslate(at: 2, on: pageNumber, isRefresh: false)
+                }
+            }
+        }
+    }
+    
+    public func restartImageProcessing() {
+        if self.delegate != nil {
+            if pageImageView1.image?.size != .zero ||
+                pageImageView1.image?.size != nil {
+                
+                if let pageNumber = self.image1?.pageNumber {
+                    self.delegate?.imageTranslate(at: 1, on: pageNumber, isRefresh: true)
+                }
+            }
+            
+            if pageImageView2.image?.size != .zero ||
+                pageImageView2.image?.size != nil {
+
+                if let pageNumber = self.image2?.pageNumber {
+                    self.delegate?.imageTranslate(at: 2, on: pageNumber, isRefresh: true)
                 }
             }
         }

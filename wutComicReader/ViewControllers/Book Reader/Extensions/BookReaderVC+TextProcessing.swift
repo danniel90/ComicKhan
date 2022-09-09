@@ -126,36 +126,132 @@ extension BookReaderVC {
         label.contentInset = UIEdgeInsets(top: -7.0,left: 0.0,bottom: 0,right: 0.0);//https://stackoverflow.com/a/39848685
         label.font = .systemFont(ofSize: 200)
         label.isUserInteractionEnabled = true
-        label.isSelectable = true
+        label.isSelectable = false
         label.isEditable = false
         label.isScrollEnabled = true
         label.scrollRangeToVisible(NSRange(location: 0,length: 0))
         label.setContentOffset(CGPoint(x: 0,y: 0), animated: false)
         label.addGestureRecognizer(getLongPressGestureRecognizer())
+        label.addGestureRecognizer(getTextViewPanningRecognizer())
         self.updateTextFont(label)
         return (transformedRect, label, text)
     }
     
     func getLongPressGestureRecognizer() -> UILongPressGestureRecognizer {
         let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.textViewLongPressed))
-        longPressGestureRecognizer.minimumPressDuration = 0.5
+        longPressGestureRecognizer.minimumPressDuration = 1
         return longPressGestureRecognizer
     }
     
-    @objc func textViewLongPressed(_ sender: UIGestureRecognizer) {
+    
+    func getTextViewPanningRecognizer() -> UIPanGestureRecognizer {
+        let textViewPanningRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.textViewPanning))
+        return textViewPanningRecognizer
+    }
+    
+    @objc func textViewLongPressed(_ sender: UILongPressGestureRecognizer) {
         print("textViewLongPressed")
-        // Activate textviews: 0. Select individual 1.Select All 2. Deselect All 3. Refresh 4. Delete 5. pseudo rich text editor 5.1 font sizes 5.2 locations
-        
+        // Activate textviews: 0. Select individual 1.Select All 2. Deselect All 3. Refresh 4. Delete 5. pseudo rich text editor 5.1 font sizes 5.2 locations 6. Undo 7. Done
         switch sender.state {
         case .began:
             if let textView = sender.view as? UITextView {
                 textView.backgroundColor = .systemBlue
+                textView.layer.borderWidth = 2
+                textView.layer.borderColor = UIColor.red.cgColor
+                
+                let locationPageview = sender.location(in: textView.superview)
+                self.firstLocationPageView = locationPageview
+                
+            }
+        case .changed:
+            if let textView = sender.view as? UITextView {
+                let locationPageview = sender.location(in: textView.superview)
+//                print("Moved to: \(locationTextView)")
+                let frame = textView.frame
+                let quadrantWidth = frame.width / 2
+                let quadrantHeight = frame.height / 2
+                
+                let topLeftQuadrantOrigin = frame.origin
+                let topRightQuadrantOrigin = CGPoint(x: topLeftQuadrantOrigin.x + quadrantWidth, y: topLeftQuadrantOrigin.y)
+                let bottomLeftQuadrantOrigin = CGPoint(x: topLeftQuadrantOrigin.x, y: topLeftQuadrantOrigin.y + quadrantHeight)
+                let bottomRightQuadrantOrigin = CGPoint(x: bottomLeftQuadrantOrigin.x + quadrantWidth, y: topLeftQuadrantOrigin.y + quadrantHeight)
+                
+                
+                let bottomLeftQuadrant = CGRect(x: bottomLeftQuadrantOrigin.x, y: bottomLeftQuadrantOrigin.y, width: quadrantWidth, height: quadrantHeight)
+                let bottomRightQuadrant = CGRect(x: bottomRightQuadrantOrigin.x, y: bottomRightQuadrantOrigin.y, width: quadrantWidth, height: quadrantHeight)
+                let topLeftQuadrant = CGRect(x: topLeftQuadrantOrigin.x, y: topLeftQuadrantOrigin.y, width: quadrantWidth, height: quadrantHeight)
+                let topRightQuadrant = CGRect(x: topRightQuadrantOrigin.x, y: topRightQuadrantOrigin.y, width: quadrantWidth, height: quadrantHeight)
+                
+                guard let firstLocationPageView = self.firstLocationPageView else { return }
+                let translation = CGPoint(x: locationPageview.x - firstLocationPageView.x, y: locationPageview.y - firstLocationPageView.y)
+                var newFrame = frame
+                if bottomLeftQuadrant.contains(locationPageview) {
+                    print("bottomLeftQuadrant contains LongPress")
+                    //left
+                    newFrame.origin.x += translation.x
+                    newFrame.size.width -= translation.x
+                    //bottom
+                    newFrame.size.height += translation.y
+                } else if bottomRightQuadrant.contains(locationPageview) {
+                    print("bottomRightQuadrant contains LongPress")
+                    //right
+                    newFrame.size.width += translation.x
+                    //bottom
+                    newFrame.size.height += translation.y
+                } else if topLeftQuadrant.contains(locationPageview) {
+                    print("topLeftQuadrant contains LongPress")
+                    //left
+                    newFrame.origin.x += translation.x
+                    newFrame.size.width -= translation.x
+                    //top
+                    newFrame.origin.y += translation.y
+                    newFrame.size.width -= translation.y
+                } else if topRightQuadrant.contains(locationPageview) {
+                    print("topRightQuadrant contains LongPress")
+                    //right
+                    newFrame.size.width += translation.x
+                    //top
+                    newFrame.origin.y += translation.y
+                    newFrame.size.width -= translation.y
+                } else if frame.contains(locationPageview) {
+                    print("frame contains LongPress")
+                } else {
+                    print("LongPress Quadrant missing")
+                }
+                
+                textView.frame = newFrame
+                self.firstLocationPageView = locationPageview
             }
         case .ended:
             if let textView = sender.view as? UITextView {
                 textView.backgroundColor = .black
+                textView.layer.borderWidth = 0
+                textView.layer.borderColor = UIColor.black.cgColor
+                self.updateTextFont(textView)
             }
         default:
+            return
+        }
+    }
+    
+    @objc func textViewPanning(_ sender: UIPanGestureRecognizer) {
+        switch sender.state {
+        case .began:
+            if let textView = sender.view as? UITextView {
+                textView.backgroundColor = textView.backgroundColor?.withAlphaComponent(0.5)
+            }
+        case .changed:
+            if let textView = sender.view as? UITextView {
+                let translation = sender.translation(in: textView.superview)
+                textView.center = CGPoint(x: textView.center.x + translation.x, y: textView.center.y + translation.y)
+                sender.setTranslation(CGPoint.zero, in: textView.superview)
+            }
+        case .ended:
+            if let textView = sender.view as? UITextView {
+                textView.backgroundColor = textView.backgroundColor?.withAlphaComponent(1)
+            }
+        default:
+            print(sender.state.rawValue)
             return
         }
     }

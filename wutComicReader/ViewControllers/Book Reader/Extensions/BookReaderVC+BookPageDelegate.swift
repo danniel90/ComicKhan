@@ -19,7 +19,7 @@ extension BookReaderVC: BookPageDelegate {
         }
     }
     
-    func imageDidChange(at pageViewIndex: Int, on pageNumber: Int?) {
+    func imageTranslate(at pageViewIndex: Int, on pageNumber: Int?, isRefresh: Bool) {
         removeDetectionAnnotations(at: pageViewIndex)
         
         let pageView = self.getPageView(at: pageViewIndex)
@@ -27,22 +27,25 @@ extension BookReaderVC: BookPageDelegate {
         guard comic?.inputLanguage != nil && comic?.inputLanguage != "none" else { return }
         guard pageNumber != nil else { return }
         
-        //try fetch from store
-        let translationsFromCoreData = fetchTranslationsFromCoreData(on: pageNumber!)
-        if translationsFromCoreData.count > 0 {
-            DispatchQueue.main.async {
-                let pageView = self.getPageView(at: pageViewIndex)
+        if !isRefresh {
+            //try fetch from store
+            let translationsFromCoreData = fetchTranslationsFromCoreData(on: pageNumber!)
+            if translationsFromCoreData.count > 0 {
+                DispatchQueue.main.async {
+                    let pageView = self.getPageView(at: pageViewIndex)
 
-                for (transformedRect, translatedText) in translationsFromCoreData {
-                    let displayResult = self.getTextView(transformedRect, translatedText)
-                    let label = displayResult.1
-                    label.backgroundColor = .black
-                    pageView.addSubview(label)
+                    for (transformedRect, translatedText) in translationsFromCoreData {
+                        let displayResult = self.getTextView(transformedRect, translatedText)
+                        let label = displayResult.1
+                        label.backgroundColor = .black
+                        pageView.addSubview(label)
+                    }
                 }
+                return
             }
-            return
+            //if fetch empty
         }
-        //if fetch empty
+        
 
         let language = comic?.inputLanguage
         

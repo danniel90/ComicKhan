@@ -60,6 +60,16 @@ class TopBar: UIView {
         return view
     }()
     
+    private lazy var TranslatePageButton: UIButton = {
+        let view = UIButton()
+        let image = #imageLiteral(resourceName: "ic-translate-app-ios").withTintColor(.appMainLabelColor)
+        view.setImage(image, for: .normal)
+        view.layer.borderColor = UIColor.appMainLabelColor.cgColor
+        view.addAction(TranslatePageTapped(), for: .touchUpInside)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private lazy var BookTranslateSettingsButton: UIButton = {
         let view = UIButton()
         let image = UIImage(named: "ic-actions-more-1")?.withTintColor(.appMainLabelColor)
@@ -88,13 +98,16 @@ class TopBar: UIView {
         
         stackView.addArrangedSubview(dismissButton)
         stackView.addArrangedSubview(titleLabel)
-        
+        stackView.addArrangedSubview(TranslatePageButton)
         stackView.addArrangedSubview(BookTranslateSettingsButton)
         BookTranslateSettingsButton.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -15).isActive = true
         BookTranslateSettingsButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
         BookTranslateSettingsButton.widthAnchor.constraint(equalToConstant: 35).isActive = true
         BookTranslateSettingsButton.heightAnchor.constraint(equalToConstant: 15).isActive = true
         
+        TranslatePageButton.rightAnchor.constraint(equalTo: BookTranslateSettingsButton.leftAnchor, constant: 1).isActive = true
+        TranslatePageButton.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        TranslatePageButton.heightAnchor.constraint(equalToConstant: 35).isActive = true
         
         dismissButton.widthAnchor.constraint(equalToConstant: 65).isActive = true
         dismissButton.heightAnchor.constraint(equalToConstant: 45).isActive = true
@@ -108,6 +121,12 @@ class TopBar: UIView {
     private func BookTranslateSettingsDidTapped() -> UIAction {
         UIAction { [weak self] _ in
             self?.delegate?.BookTranslateSettingsTapped()
+        }
+    }
+    
+    private func TranslatePageTapped() -> UIAction {
+        UIAction { [weak self] _ in
+            self?.delegate?.TranslatePageTapped()
         }
     }
     
